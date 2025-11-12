@@ -1,0 +1,42 @@
+[project]
+name = "data-scrap"
+version = "0.1.0"
+description = "data scrap tools and scripts"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "arrow>=1.3.0",
+    "confluent-kafka>=2.8.0",
+    "duckdb>=1.3.1",
+    "fire>=0.7.0",
+    "httpx[http2]>=0.28.1",
+    "psycopg2-binary>=2.9.10",
+    "repoutils",
+]
+
+[[tool.uv.index]]
+url = "https://artifactory.ep.chehejia.com/artifactory/api/pypi/pypi-remote/simple"
+default = true
+
+[tool.uv.sources]
+repoutils = { path = "../../packages/repoutils", editable = true }
+
+
+[tool.pytest.ini_options]
+log_cli = "true"
+log_cli_level = "DEBUG"
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.24.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ['data_scrap']

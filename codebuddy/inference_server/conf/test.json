@@ -1,0 +1,260 @@
+{
+  "instances": {
+    "test.opt125m-spec": {
+      "model_type": "opt",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/opt/opt-125m",
+      "model_labels": {
+        "size": "125M",
+        "spec": "ngram",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "_ngram_spec_decoding": true,
+        "enforce_eager": true,
+        "max_logprobs": 5,
+        "max_model_len": 2048,
+        "num_speculative_tokens": 10,
+        "gpu_memory_utilization": 0.2
+      },
+      "models": {
+        "default": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_threshold": 0.8,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "test.opt125m": {
+      "model_type": "opt",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/opt/opt-125m",
+      "model_labels": {
+        "size": "125M",
+        "spec": "ngram",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "enforce_eager": true,
+        "enable_chunked_prefill": true,
+        "max_logprobs": 5,
+        "max_model_len": 2048,
+        "gpu_memory_utilization": 0.4
+      },
+      "models": {
+        "default": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_threshold": 0.8,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "test.vllm_qwen05": {
+      "model_type": "qwen",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/Qwen2.5-0.5B-Instruct-AWQ",
+      "model_labels": {
+        "size": "0.5B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "enforce_eager": true,
+        "enable_chunked_prefill": true,
+        "max_logprobs": 5,
+        "max_model_len": 3000,
+        "gpu_memory_utilization": 0.1
+      },
+      "models": {
+        "default": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_threshold": 0.8,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "test.opt-speculative-inf-small": {
+      "model_type": "vllm_generic",
+      "disable_register": true,
+      "model_labels": {
+        "size": "350M",
+        "inference_by": "vllm"
+      },
+      "model_path": "/mnt/volumes/zxd-code-complete/data/models/opt-350m",
+      "model_params": {
+        "speculative_model": "/mnt/volumes/zxd-code-complete/data/models/opt-125m",
+        "num_speculative_tokens": 5,
+        "max_logprobs": 10,
+        "gpu_memory_utilization": 0.5
+      },
+      "models": {
+        "opt-350m": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5
+          }
+        }
+      }
+    },
+    "test.deepseek-coder-1_3B-spec-inf": {
+      "env": {},
+      "model_type": "deepseek_coder",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/inf-zxd-code-complete/data/models/deepseek-coder-1.3b-instruct/",
+      "model_params": {
+        "enforce_eager": true,
+        "speculative_model": "[ngram]",
+        "num_speculative_tokens": 5,
+        "gpu_memory_utilization": 0.4
+      },
+      "models": {
+        "deepseek-coder-1_3b": {
+          "params": {}
+        }
+      }
+    },
+    "opt125m": {
+      "model_type": "vllm_generic",
+      "disable_register": true,
+      "model_labels": {
+        "size": "125M",
+        "inference_by": "vllm"
+      },
+      "model_path": "/mnt/volumes/zxd-code-complete/data/models/opt-125m",
+      "model_params": {
+        "max_logprobs": 10,
+        "gpu_memory_utilization": 0.4
+      },
+      "models": {
+        "opt-125m": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 10
+          }
+        }
+      }
+    },
+    "test.qwen25-7B-awq": {
+      "model_type": "qwen",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/Qwen2.5-7B-Instruct-AWQ/",
+      "model_labels": {
+        "size": "14B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enforce_eager": true,
+        "enable_prefix_caching": false,
+        "_enable_logprobs": false,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill": false,
+        "num_speculative_tokens": 8,
+        "max_model_len": 3500
+      },
+      "models": {
+        "default": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 4000,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.609,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "bench-dp-ep-smoketest-0512.1416": {
+      "model_type": "deepseek_coder",
+      "model_path": "/mnt/volumes/zxd-code-complete/data/models/ep-models/deepseek-coder-6.7b-base_ft_ep_202405121416",
+      "model_labels": {
+        "size": "6.7B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "max_logprobs": 10,
+        "max_model_len": 4000,
+        "speculative_model": "[ngram]",
+        "num_speculative_tokens": 8,
+        "ngram_prompt_lookup_min": 0,
+        "ngram_prompt_lookup_max": 8
+      },
+      "models": {
+        "default": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_threshold": 0.8,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "trt-codellama": {
+      "env": {
+        "MODELTYPE": "trt_codellama",
+        "MODELPATH": "data/models/tensorrtllm/tllm_codellama7binstruct_fp16",
+        "MODELSIZE": "7B"
+      },
+      "model_params": {
+        "tokenizer_path": "/lpai/volumes/zxd-code-complete/data/models/hf-codellama-7b-instruct_v4.34"
+      }
+    },
+    "lmdeploy_opt": {
+      "model_type": "lmdeploy_generic",
+      "model_labels": {
+        "size": "125M",
+        "inference_by": "vllm"
+      },
+      "model_path": "/mnt/volumes/zxd-code-complete/data/models/opt-125m",
+      "model_params": {
+        "transformer_model_path": "/lpai/volumes/zxd-code-complete/data/models/hf-codellama-7b-instruct_v4.34"
+      }
+    },
+    "dp-coder-v2-16B-transformers": {
+      "model_type": "deepseek_coder_transformers",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek/deepseek-ai__deepseek-coder-v2-lite-instruct-24-06-17-1123",
+      "lpai_endpoint.disable": "lpai-inference.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A10"
+      },
+      "model_params": {
+        "dtype1": "bfloat16",
+        "attn_implementation": "flash_attention_2",
+        "load_in_8bit": true,
+        "enforce_eager": true,
+        "max_model_len": 2000
+      },
+      "models": {
+        "dp-coder-v2-16b": {
+          "params": {
+            "temperature": 0
+          }
+        },
+        "dp-coder-v2-16b-chat": {
+          "params": {
+            "repetition_penalty": 1.1,
+            "temperature": 0.7
+          }
+        }
+      }
+    }
+  }
+}

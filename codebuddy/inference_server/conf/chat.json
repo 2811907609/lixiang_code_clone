@@ -1,0 +1,222 @@
+{
+  "instances": {
+    "prod.qwen3-4b-2507-inst": {
+      "desc": "qwen3 4b",
+      "model_type": "qwen",
+      "lpai_endpoint.disable": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "4B",
+        "inference_by": "vllm",
+        "device": "A10"
+      },
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/qwen__qwen3-4b-instruct-2507/25-08-06-1108",
+      "model_params": {
+        "enable_prefix_caching": true,
+        "gpu_memory_utilization": 0.92,
+        "_ngram_spec_decoding.disable": true,
+        "enable_chunked_prefill": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 16000
+      },
+      "models": {
+        "qwen3-4b-2507-inst": {
+          "params": {
+            "top_k": 20,
+            "top_p": 0.8,
+            "temperature": 0.7
+          }
+        }
+      }
+    },
+    "prod.qwen3-4b": {
+      "desc": "qwen3 4b",
+      "model_type": "qwen",
+      "lpai_endpoint.disable": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "4B",
+        "inference_by": "vllm",
+        "device": "A10"
+      },
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/qwen__qwen3-4b-awq-25-05-21-0613",
+      "model_params": {
+        "enable_reasoning": true,
+        "reasoning_parser": "qwen3",
+        "enable_prefix_caching": true,
+        "gpu_memory_utilization": 0.92,
+        "_ngram_spec_decoding.disable": true,
+        "enable_chunked_prefill": true,
+        "tensor_parallel_size": 1,
+        "hf_overrides.disable": {"max_position_embeddings": 131072, "rope_scaling": {"factor": 4.0, "original_max_position_embeddings": 32768, "rope_type": "yarn", "type": "yarn"}},
+        "max_model_len": 16000
+      },
+      "models": {
+        "qwen3-4b-awq": {
+          "params": {
+            "top_k": 20,
+            "temperature": 0.6
+          }
+        }
+      }
+    },
+    "prod.deepswe-preview": {
+      "desc": "deepswe, based on qwen3 32B",
+      "model_type": "deepswe",
+      "lpai_endpoint.disable": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "8B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/swe/agentica-org__deepswe-preview/25-07-03-0004/",
+      "model_params": {
+        "enable_reasoning": true,
+        "reasoning_parser": "qwen3",
+        "enable_prefix_caching": true,
+        "gpu_memory_utilization": 0.94,
+        "_ngram_spec_decoding.disable": true,
+        "enable_chunked_prefill": true,
+        "tensor_parallel_size": 2,
+        "hf_overrides": {"max_position_embeddings": 65536},
+        "max_model_len": 65536
+      },
+      "models": {
+        "deepswe": {
+          "params": {
+            "top_k": 20,
+            "temperature": 1
+          }
+        }
+      }
+    },
+    "prod.deepseek-r1-0528-qwen3-8b": {
+      "desc": "deepseek R1 0528 distilled qwen3 8b",
+      "model_type": "qwen",
+      "lpai_endpoint.disable": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "8B",
+        "inference_by": "vllm",
+        "device": "A10"
+      },
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/deepseek-ai__deepseek-r1-0528-qwen3-8b-25-05-29-1313",
+      "model_params": {
+        "enable_reasoning": true,
+        "reasoning_parser": "qwen3",
+        "enable_prefix_caching": true,
+        "gpu_memory_utilization": 0.92,
+        "_ngram_spec_decoding.disable": true,
+        "enable_chunked_prefill": true,
+        "tensor_parallel_size": 2,
+        "hf_overrides": {"max_position_embeddings": 131072, "rope_scaling": {"factor": 4.0, "original_max_position_embeddings": 32768, "rope_type": "yarn", "type": "yarn"}},
+        "max_model_len": 12000
+      },
+      "models": {
+        "deepseek-r1-0528-qwen3-8b": {
+          "params": {
+            "top_k": 20,
+            "temperature": 0.6
+          }
+        }
+      }
+    },
+    "prod.qwq32B-awq": {
+      "desc": "qwen qwq32B awq",
+      "model_type": "qwen",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "32B",
+        "inference_by": "vllm",
+        "quantization": "awq",
+        "device": "A10"
+      },
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/qwq-32b-awq",
+      "model_params": {
+        "enable_reasoning": true,
+        "reasoning_parser": "deepseek_r1",
+        "enable_prefix_caching": true,
+        "gpu_memory_utilization": 0.92,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 4,
+        "hf_overrides": {"max_position_embeddings": 40960, "rope_scaling": {"factor": 4.0, "original_max_position_embeddings": 32768, "rope_type": "yarn", "type": "yarn"}},
+        "max_model_len.disable": 32768,
+        "max_model_len": 80000
+      },
+      "models": {
+        "qwq32b": {
+          "params": {
+            "temperature": 0
+          }
+        },
+        "qwq32b-chat": {
+          "params": {
+            "repetition_penalty": 1.1,
+            "temperature": 0.7
+          }
+        }
+      }
+    },
+    "prod.qwen25-32b": {
+      "desc": "qwen 2.5 32B awq",
+      "model_type": "qwen_coder",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "32B",
+        "inference_by": "vllm",
+        "quantization": "awq",
+        "device": "A10"
+      },
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/Qwen2.5-Coder-32B-Instruct-AWQ",
+      "model_params": {
+        "disable_log_requests": true,
+        "enable_prefix_caching": true,
+        "gpu_memory_utilization": 0.94,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 2,
+        "max_model_len": 32768
+      },
+      "models": {
+        "chat-qwen25-coder-32b": {
+          "params": {
+            "repetition_penalty": 1.1,
+            "temperature": 0.7
+          }
+        },
+        "qwen25-coder-32b-ep": {
+          "params": {
+            "temperature": 0
+          }
+        }
+      }
+    },
+    "prod.codestral-22B-awq": {
+      "model_type": "codestral",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/mistral/Codestral-22B-v0.1-AWQ",
+      "lpai_endpoint": "lpai-inference.inner.chj.cloud",
+      "model_labels": {
+        "size": "22B",
+        "quantization": "awq",
+        "inference_by": "vllm",
+        "device": "A10"
+      },
+      "model_params": {
+        "quantization": "awq",
+        "tensor_parallel_size": 2,
+        "max_model_len": 32768
+      },
+      "models": {
+        "codestral-22b-awq": {
+          "params": {
+            "temperature": 0
+          }
+        },
+        "codestral-22b-awq-chat": {
+          "params": {
+            "repetition_penalty": 1.1,
+            "temperature": 0.7
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,767 @@
+{
+    "instances": {
+      "vllm-phi-2": {
+        "env": {
+          "MODELTYPE": "vllm_phi",
+          "MODELPATH": "data/models/phi-2",
+          "MODELSIZE": "2.7B"
+        }
+      },
+      "vllm-codellama": {
+        "env": {
+          "MODELTYPE": "vllm_codellama",
+          "MODELPATH": "data/models/hf-codellama-7b-instruct_v4.34",
+          "MODELSIZE": "7B"
+        }
+      },
+      "vllm-codellama-ep": {
+        "env": {
+          "MODELTYPE": "vllm_codellama",
+          "MODELPATH": "data/models/ep-models/codellama-ep-priv-code-finetuned-24-01-13-4460/CodeLlama-7b-Instruct-hf.fullft",
+          "MODELSIZE": "7B"
+        }
+      },
+      "prod.codellama7B": {
+        "model_type": "vllm_codellama",
+        "model_labels": {
+          "size": "7B",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/hf-codellama-7b-instruct_v4.34",
+        "model_params": {},
+        "models": {
+          "codellama-a100": {
+            "params": {}
+          }
+        }
+      },
+      "prod.codellama-7b-ep-awq": {
+        "model_type": "vllm_codellama",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/codellama-7b-instruct-fullft_202402170526-awq",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq"
+        },
+        "models": {
+          "codellama-ep-awq": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10
+            }
+          }
+        }
+      },
+      "vllm-codellama-lora": {
+        "env": {
+          "MODELTYPE": "vllm_codellama",
+          "MODELPATH": "data/models/ep-models/lora1227/basellm",
+          "MODELSIZE": "7B"
+        },
+        "model_params": {
+          "enable_lora": true,
+          "max_loras": 2,
+          "max_cpu_loras": 4,
+          "max_lora_rank": 32
+        },
+        "lora": {
+          "loras": {
+            "ep": {
+              "id": 1,
+              "path": "/mnt/volumes/zxd-code-complete/data/models/ep-models/lora1227/lora_model"
+            },
+            "empty": {
+              "id": 2,
+              "path": "/mnt/volumes/zxd-code-complete/data/models/ep-models/lora1227/empty_lora_model"
+            }
+          }
+        }
+      },
+      "prod.deepseek-coder-6_7B-ep-awq-ngram-spec-rag-length": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/deepseek-coder-6.7b-instruct_202404020146-merged-awq/",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "spec": "ngram",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq",
+          "max_model_len": 4000,
+          "speculative_model": "[ngram]",
+          "num_speculative_tokens": 8,
+          "ngram_prompt_lookup_min": 1,
+          "ngram_prompt_lookup_max": 8
+        },
+        "models": {
+          "dp-6_7b-ep-202404020146-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-ep-202404020146-awq-ngram-logprob-rag200": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "rag_min_length": 200,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-non-ep-202404020146-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-non-ep-202404020146-awq-ngram-logprob-rag200": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "rag_min_length": 200,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.deepseek-coder-6_7B-ep": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/deepseek-coder-6.7b-instruct_202404020146-merged/",
+        "model_labels": {
+          "size": "6.7B",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "max_model_len": 4000
+        },
+        "models": {
+          "deepseek-coder-6_7b-ep": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10
+            }
+          },
+          "deepseek-coder-6_7b-ep-202404020146": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10
+            }
+          },
+          "deepseek-coder-6_7b-non-ep-202404020146": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10
+            }
+          }
+        }
+      },
+      "stopped.prod.deepseek-coder-6_7B-ep-awq": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/deepseek-coder-6.7b-instruct_202404020146-merged-awq/",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq",
+          "max_model_len": 4000
+        },
+        "models": {
+          "deepseek-coder-6_7b-ep-awq": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 0.5
+            }
+          },
+          "deepseek-coder-6_7b-ep-202404020146-awq-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "deepseek-coder-6_7b-ep-202404020146-awq": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10
+            }
+          },
+          "deepseek-coder-6_7b-non-ep-202404020146-awq-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "deepseek-coder-6_7b-non-ep-202404020146-awq": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10
+            }
+          }
+        }
+      },
+      "prod.deepseek-coder-6_7B-awq": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek-coder-6.7B-instruct-AWQ",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq",
+          "max_model_len": 4000
+        },
+        "models": {
+          "deepseek-coder-6_7b-awq-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "deepseek-coder-6_7b-awq": {
+            "params": {}
+          }
+        }
+      },
+      "prod.dp-6_7B-awq-ngram": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek-coder-6.7B-instruct-AWQ",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "spec": "ngram",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq",
+          "max_model_len": 4000,
+          "use_v2_block_manager": true,
+          "speculative_model": "[ngram]",
+          "num_speculative_tokens": 8,
+          "ngram_prompt_lookup_min": 1,
+          "ngram_prompt_lookup_max": 8
+        },
+        "models": {
+          "dp-6_7b-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.deepseek-coder-6_7B-awq-spec-inf": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek-coder-6.7B-instruct-AWQ",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "gpu_memory_utilization": 0.9,
+          "max_model_len": 4000,
+          "use_v2_block_manager": true,
+          "speculative_model": "/lpai/volumes/zxd-code-complete/data/models/deepseek-coder-1.3b-instruct-awq/",
+          "num_speculative_tokens": 5
+        },
+        "models": {
+          "deepseek-coder-6_7b-awq-spec-inf": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.deepseek-coder-6_7B-ep-awq-spec-inf": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/deepseek-coder-6.7b-instruct_202404020146-merged-awq/",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "gpu_memory_utilization": 0.9,
+          "max_model_len": 4000,
+          "use_v2_block_manager": true,
+          "speculative_model": "/lpai/volumes/zxd-code-complete/data/models/deepseek-coder-1.3b-instruct-awq/",
+          "num_speculative_tokens": 5
+        },
+        "models": {
+          "deepseek-coder-6_7b-ep-awq-spec-inf": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.dp-6_7B-ep-202405191212-awq-ngram": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/deepseek-coder-6.7b-base_ft_ep_202405191212_awq",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "spec": "ngram",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq",
+          "max_model_len": 4000,
+          "use_v2_block_manager": true,
+          "speculative_model": "[ngram]",
+          "num_speculative_tokens": 8,
+          "ngram_prompt_lookup_min": 1,
+          "ngram_prompt_lookup_max": 8
+        },
+        "models": {
+          "dp-6_7b-ep-202405191212-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-non-ep-202405191212-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.58,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.dp-6_7B-ep-202406100308-awq-ngram": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/dp-6.7b_ep_202406100308_awq",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "spec": "ngram",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "_ngram_spec_decoding": true,
+          "max_logprobs": 5,
+          "quantization": "awq",
+          "max_model_len": 4000
+        },
+        "models": {
+          "dp-6_7b-ep-202406100308-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.61,
+              "topk_mean_token_num": 3,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-ep-0610-awq-ngram": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.61,
+              "topk_mean_token_num": 3,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-ep-0610-awq-ngram-long-rag": {
+            "params": {
+              "temperature": 0,
+              "rag_min_length": 800,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.61,
+              "topk_mean_token_num": 3,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-non-ep-202406100308-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_token_num": 3,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.dp-6_7B-ep-202406021338-awq-ngram": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/dp-6.7b_ep_202406021338_awq",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "spec": "ngram",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq",
+          "max_model_len": 4000,
+          "use_v2_block_manager": true,
+          "speculative_model": "[ngram]",
+          "num_speculative_tokens": 8,
+          "ngram_prompt_lookup_min": 1,
+          "ngram_prompt_lookup_max": 8
+        },
+        "models": {
+          "dp-6_7b-ep-202406021338-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.73,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-non-ep-202406021338-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.73,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.dp-6_7B-ep-202405290059-awq-ngram": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/dp-6.7b_ep_202405290059_awq",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "spec": "ngram",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq",
+          "max_model_len": 4000,
+          "use_v2_block_manager": true,
+          "speculative_model": "[ngram]",
+          "num_speculative_tokens": 8,
+          "ngram_prompt_lookup_min": 1,
+          "ngram_prompt_lookup_max": 8
+        },
+        "models": {
+          "dp-6_7b-ep-202405290059-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.88,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-non-ep-202405290059-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.88,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.deepseek-coder-6_7B-ep-20240512-awq-ngram": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/deepseek-coder-6.7b-instruct_ep_2024051202_awq",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "spec": "ngram",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "quantization": "awq",
+          "max_model_len": 4000,
+          "use_v2_block_manager": true,
+          "speculative_model": "[ngram]",
+          "num_speculative_tokens": 8,
+          "ngram_prompt_lookup_min": 1,
+          "ngram_prompt_lookup_max": 8
+        },
+        "models": {
+          "deepseek-coder-6_7b-ep-20240512-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "rag_min_length": 200,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "deepseek-coder-6_7b-non-ep-20240512-awq-ngram-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.dp-6_7B-ep-202405191212-awq": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/deepseek-coder-6.7b-base_ft_ep_202405191212_awq",
+        "model_labels": {
+          "size": "6.7B",
+          "quantization": "awq",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 5,
+          "quantization": "awq",
+          "max_model_len": 4000
+        },
+        "models": {
+          "dp-6_7b-ep-202405191212-awq-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "dp-6_7b-non-ep-202405191212-awq-logprob": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 5,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          }
+        }
+      },
+      "prod.best-deepseek-coder-6_7B-loras": {
+        "model_type": "deepseek_coder",
+        "model_path": "/lpai/volumes/zxd-code-complete/data/multitask_base_model/deepseek-coder-6.7b-instruct",
+        "model_labels": {
+          "size": "6.7B",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_params": {
+          "max_logprobs": 10,
+          "max_model_len": 5000,
+          "enable_lora": true,
+          "max_loras": 3,
+          "max_cpu_loras": 4,
+          "max_lora_rank": 32
+        },
+        "models": {
+          "deepseek-coder-6_7b": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "deepseek-coder-6_7b-lora-base": {
+            "params": {
+              "temperature": 0,
+              "logprobs": 10,
+              "topk_mean_threshold": 0.8,
+              "topk_mean_active_ratio": 1
+            }
+          },
+          "deepseek-coder-6_7b-lora-ep": {
+            "params": {
+              "lora": "ep",
+              "temperature": 0,
+              "logprobs": 10
+            }
+          },
+          "deepseek-coder-6_7b-lora-limesh": {
+            "params": {
+              "lora": "limesh",
+              "temperature": 0,
+              "logprobs": 10
+            }
+          },
+          "deepseek-coder-6_7b-lora-cpdtest": {
+            "params": {
+              "lora": "cpdtest",
+              "temperature": 0,
+              "logprobs": 10
+            }
+          },
+          "deepseek-coder-6_7b-lora-cpdinfra": {
+            "params": {
+              "lora": "cpdinfra",
+              "temperature": 0,
+              "logprobs": 10
+            }
+          },
+          "deepseek-coder-6_7b-lora-cpdsystem": {
+            "params": {
+              "lora": "cpdsystem",
+              "temperature": 0,
+              "logprobs": 10
+            }
+          },
+          "deepseek-coder-6_7b-lora-vcos": {
+            "params": {
+              "lora": "vcos",
+              "temperature": 0,
+              "logprobs": 10
+            }
+          }
+        },
+        "lora": {
+          "loras": {
+            "ep": {
+              "id": 1,
+              "path": "/lpai/volumes/zxd-code-complete/data/multitask_best_lora/202403150800/best_model/智能云_软件效率"
+            },
+            "limesh": {
+              "id": 2,
+              "path": "/lpai/volumes/zxd-code-complete/data/multitask_best_lora/202403150800/best_model/智能云_智能网格"
+            },
+            "cpdtest": {
+              "id": 3,
+              "path": "/lpai/volumes/zxd-code-complete/data/multitask_best_lora/202403150800/best_model/算力平台_平台测试"
+            },
+            "cpdinfra": {
+              "id": 4,
+              "path": "/lpai/volumes/zxd-code-complete/data/multitask_best_lora/202403150800/best_model/算力平台_基础软件"
+            },
+            "cpdsystem": {
+              "id": 5,
+              "path": "/lpai/volumes/zxd-code-complete/data/multitask_best_lora/202403150800/best_model/算力平台_系统软件"
+            },
+            "vcos": {
+              "id": 6,
+              "path": "/lpai/volumes/zxd-code-complete/data/multitask_best_lora/202403150800/best_model/操作系统_车控OS"
+            }
+          }
+        }
+      },
+      "prod.vllm-stablecode": {
+        "env": {
+          "EP_LABELS": "category=stablecode;size=3B;inference_by=vllm;device=A10",
+          "MODELTYPE": "vllm_generic",
+          "MODELPATH": "/lpai/volumes/inf-zxd-code-complete/data/models/stablecode-completion-alpha-3b-4k/",
+          "MODELSIZE": "3B"
+        },
+        "model_params": {},
+        "models": {
+          "stablecode": {
+            "params": {}
+          }
+        }
+      },
+      "prod.lmdeploy_codellama7b": {
+        "model_type": "lmdeploy_generic",
+        "model_labels": {
+          "size": "7B",
+          "inference_by": "lmpdeloy",
+          "device": "A100"
+        },
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/hf-codellama-7b-instruct_v4.34",
+        "model_params": {
+          "transformer_model_path": "/lpai/volumes/zxd-code-complete/data/models/hf-codellama-7b-instruct_v4.34"
+        },
+        "models": {
+          "lmdeploy-codellama": {
+            "params": {}
+          }
+        }
+      },
+      "prod.vllm-codellama-lora": {
+        "model_type": "vllm_codellama",
+        "model_labels": {
+          "category": "codellama",
+          "size": "7B",
+          "inference_by": "vllm",
+          "device": "A100"
+        },
+        "model_path": "/lpai/volumes/zxd-code-complete/data/multitask_base_model/CodeLlama-7b-Instruct-hf.fullft",
+        "model_params": {
+          "enable_lora": true,
+          "max_loras": 3,
+          "max_cpu_loras": 4,
+          "max_lora_rank": 32
+        },
+        "models": {
+          "vllm-codellama-lora-base": {
+            "params": {}
+          },
+          "vllm-codellama-lora-ep": {
+            "params": {
+              "lora": "ep"
+            }
+          },
+          "vllm-codellama-lora-os": {
+            "params": {
+              "lora": "os"
+            }
+          }
+        },
+        "lora": {
+          "loras": {
+            "ep": {
+              "id": 1,
+              "path": "/lpai/volumes/zxd-code-complete/data/multitask_best_lora/202402170526/best_model/智能云_软件效率"
+            },
+            "os": {
+              "id": 2,
+              "path": "/lpai/volumes/zxd-code-complete/data/multitask_best_lora/202402170526/best_model/操作系统_车控OS"
+            }
+          }
+        }
+      }
+    }
+}

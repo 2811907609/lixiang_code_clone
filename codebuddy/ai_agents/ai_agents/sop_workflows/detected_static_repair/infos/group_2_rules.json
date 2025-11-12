@@ -1,0 +1,10 @@
+{
+    "智能OS":[
+        "对于mvbs代码中所有foreach_为前缀的宏，宏内涉及的misarC问题不用修改",
+        "所有mvbs代码中文件开头的#undef MVBSLOG_LEVEL都不用修改，其余的undef需要修改",
+        "对于代码中，如果将参数指针指向了一个函数内的局部变量，如果后续使用了这个参数指针，应修改为使用当前局部变量的指针，而不是给参数指针赋值然后使用参数指针",
+        "description: Declaring an external linkage function with identifier 'xxx'.Identifiers that define objects or functions with external linkage shall be unique. =>如果是weak function，##带有pragma 标记，遇见重名函数不要改，跳过此次修复",
+        "建议过滤 'The goto statement should not be used' 规则， mvbs内部大量使用了goto,这种问题不需要修改",
+        "宏参数在展开时应该被括号包围以避免操作符优先级问题=>括号应该在宏里面加，而不是在使用宏的每个位置都加,遵循代码改动的最少化原则"
+    ]
+}

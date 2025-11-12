@@ -1,0 +1,28 @@
+{
+  "instances": {
+    "ct2-codellama": {
+      "env": {
+        "MODELTYPE": "ct2_codellama",
+        "TRANSFORMER_MODELPATH": "data/models/hf-codellama-7b-instruct_v4.34",
+        "MODELPATH": "data/models/ct2_codellama7bi_i8f16",
+        "MODELSIZE": "7B"
+      }
+    },
+    "ct2-codellama-finetuned": {
+      "env": {
+        "MODELTYPE": "ct2_codellama",
+        "TRANSFORMER_MODELPATH": "data/models/ep-models/model-test-zyy-23-12-14-9578/CodeLlama-7b-Instruct-hf.fullft",
+        "MODELPATH": "data/models/ep-models/model-test-zyy-23-12-14-9578/CodeLlama-7b-Instruct-hf.fullft.ct2",
+        "MODELSIZE": "7B"
+      }
+    },
+    "ct2-phi-2": {
+      "env": {
+        "MODELTYPE": "ct2_phi_2",
+        "TRANSFORMER_MODELPATH": "data/models/phi-2",
+        "MODELPATH": "data/models/ct2_phi_2_i8bf16",
+        "MODELSIZE": "2.7B"
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+# 第一阶段：构建 Go 工具链
+FROM artifactory.ep.chehejia.com/ep-docker/golang:1.24.2 AS gobuilder
+
+# 安装 staticcheck
+RUN go install honnef.co/go/tools/cmd/staticcheck@latest
+
+# 安装 reviewdog
+RUN curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s
+
+# 第二阶段：构建 uv 二进制
+FROM artifactory.ep.chehejia.com/docker-remote/alpine:3.22.0 AS uv_binary
+
+ADD https://artifactory.ep.chehejia.com/artifactory/generic-github-releases-remote/astral-sh/uv/releases/download/0.7.21/uv-x86_64-unknown-linux-gnu.tar.gz /tmp/uv.tar.gz
+
+RUN tar -xz -C /tmp/ -f /tmp/uv.tar.gz && rm /tmp/uv.tar.gz
+
+# 主阶段
+FROM artifactory.ep.chehejia.com/ep-docker/python:3.12.7-bookworm
+
+# 复制 Go 工具
+COPY --from=gobuilder /go/bin/staticcheck /usr/local/bin/
+COPY --from=gobuilder /go/bin/reviewdog /usr/local/bin/
+COPY --from=gobuilder /usr/local/go /usr/local/go
+
+# 设置环境变量
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+COPY deploy/debian12-sources.list /etc/apt/sources.list
+COPY deploy/pip.conf /root/.pip/pip.conf
+
+COPY --from=uv_binary /tmp/uv-x86_64-unknown-linux-gnu/uv /tmp/uv-x86_64-unknown-linux-gnu/uvx /bin/
+
+# set bash as default shell
+SHELL ["/bin/bash", "-c"]
+
+# 禁用 HTTPS 证书验证（解决内网证书问题）
+RUN echo 'Acquire::https::Verify-Peer "false";' > /etc/apt/apt.conf.d/99verify-peer.conf \
+    && echo 'Acquire::https::Verify-Host "false";' > /etc/apt/apt.conf.d/99verify-host.conf
+
+RUN pip install --upgrade pip && \
+    pip install ast-grep-cli --no-cache-dir
+
+# 验证安装
+RUN sg --version
+
+# 验证工具
+RUN sg --version && \
+    staticcheck --version && \
+    reviewdog --version && \
+    go version
+
+# 先复制所有代码，再同步依赖（避免依赖路径问题）
+COPY . /app
+
+WORKDIR /app/codebuddy/ai_agents
+
+# 使用 --all-groups 同步所有依赖组
+RUN uv sync --all-groups
+
+CMD ["uv", "run", "ai_agents/modules/codedoggy/server/api.py"]

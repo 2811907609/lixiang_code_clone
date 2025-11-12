@@ -1,0 +1,24 @@
+
+FROM artifactory.ep.chehejia.com/ep-docker/python:3.12.7-bookworm
+
+LABEL org.opencontainers.image.authors="zhangxudong@lixiang.com"
+
+COPY deploy/debian12-sources.list /etc/apt/sources.list
+COPY deploy/pip.conf /root/.pip/pip.conf
+
+# astral-sh/uv:0.5.22
+COPY --from=artifactory.ep.chehejia.com/ghcr.io/astral-sh/uv:0.5.22 /uv /uvx /bin/
+
+# set bash as default shell
+SHELL ["/bin/bash", "-c"]
+
+# try to cache packages install of sysutils, repoutils, rag_ingest
+COPY packages/sysutils/pyproject.toml packages/sysutils/README.md packages/sysutils/uv.lock   /app/packages/sysutils/
+COPY packages/repoutils/pyproject.toml packages/repoutils/README.md packages/repoutils/uv.lock   /app/packages/repoutils/
+COPY codebuddy/rag_ingest/pyproject.toml codebuddy/rag_ingest/README.md codebuddy/rag_ingest/uv.lock  /app/codebuddy/rag_ingest/
+
+RUN cd /app/codebuddy/rag_ingest && uv sync
+
+COPY . /app
+
+WORKDIR /app/codebuddy/rag_ingest

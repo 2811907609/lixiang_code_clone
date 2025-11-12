@@ -1,0 +1,46 @@
+
+# 确保所有任务在一个pipeline中运行
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+include:
+  - project: 'ep-public/portal/cicd-tools'
+    ref: v1
+    file:
+      - 'gitlabci/precommit/precommit.yaml'
+
+stages:
+  - build
+  - unit-test
+
+pre-commit:
+  extends: .ep-ci-pre-commit
+  stage: build
+  # 不需要额外的规则，因为已经从.ep-ci-pre-commit继承了规则
+
+unit-test:
+  stage: unit-test
+  image:
+    name: artifactory.ep.chehejia.com/ep-docker/moby/buildkit:v0.12.3
+    entrypoint: [""]
+  script:
+    - |
+      echo '==============docker build============'
+
+      export _EP_DOCKER_CREDS="{\"auths\":{\"artifactory.ep.chehejia.com\":{\"auth\":\"${DOCKER_ARTI_AUTH}\"}}}"
+      mkdir /tmp/_ep_docker && echo "$_EP_DOCKER_CREDS" > /tmp/_ep_docker/config.json
+      export DOCKER_CONFIG=/tmp/_ep_docker
+
+      buildctl-daemonless.sh build \
+        --progress=plain \
+        --frontend=dockerfile.v0 \
+        --local context=. \
+        --local dockerfile=. \
+        --opt filename=deploy/Dockerfile-ci-test \
+        --opt build-arg:PACKAGE_PATH=packages/sysutils \
+        --import-cache type=registry,ref=artifactory.ep.chehejia.com/ep-docker-release-local/codebuddy/code-complete-ci-ut:cache \
+        --export-cache type=registry,ref=artifactory.ep.chehejia.com/ep-docker-release-local/codebuddy/code-complete-ci-ut:cache,mode=max
+      echo '==============docker build done============'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"

@@ -1,0 +1,17 @@
+id: struct
+language: go
+rule:
+  kind: type_declaration
+  regex: type\s+{WORDS}\s+struct
+---
+id: func
+language: go
+rule:
+  kind: function_declaration
+  regex: func\s+(\([^)]+\)\s+)?{WORDS}\s*\(([^)]*)\)\s*(?:\(([^)]+)\)|([^{)\s]*))?\s*
+---
+id: method
+language: go
+rule:
+  kind: method_declaration
+  regex: func\s+(\([^)]+\)\s+)?{WORDS}\s*\(([^)]*)\)\s*(?:\(([^)]+)\)|([^{)\s]*))?\s*

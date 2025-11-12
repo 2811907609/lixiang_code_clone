@@ -1,0 +1,1065 @@
+
+- description: "from CR http://gerrit.it.chehejia.com:8080/c/ep/web/ep-services/+/1311707"
+  gerrit_cr: 1311707
+  original_text: |
+    package feishu
+
+    import (
+      "bytes"
+      "encoding/hex"
+      "encoding/json"
+      "fmt"
+      "path"
+      "slices"
+      "strings"
+      "time"
+
+      "github.com/go-resty/resty/v2"
+      lark "github.com/larksuite/oapi-sdk-go/v3"
+      larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
+      "github.com/pkg/errors"
+      "github.com/rs/zerolog"
+
+      models "ep-services/pkg/feishu/models"
+      "ep-services/pkg/lib/log"
+      "ep-services/utils/crypt"
+      "ep-services/utils/xhttp"
+    )
+
+    const GrantType = "authorization_code"
+
+    type Client struct {
+      L          *zerolog.Logger
+      FEISHUHost string
+      larkClient *lark.Client
+      Debug      bool
+    }
+
+    type FEISHU struct {
+      FEISHUHost string
+      Debug      bool // enable debug, will print request info
+    }
+
+    var _ IClient = &Client{}
+
+    func newLarkClient(host string, debug bool) *lark.Client {
+      optionFns := []lark.ClientOptionFunc{lark.WithOpenBaseUrl(host), lark.WithEnableTokenCache(false)}
+      if debug {
+        optionFns = append(optionFns, lark.WithLogReqAtDebug(true))
+        optionFns = append(optionFns, lark.WithLogLevel(larkcore.LogLevelDebug))
+      }
+      larkClient := lark.NewClient(" ", " ", optionFns...)
+      return larkClient
+    }
+
+    func NewClient(config *FEISHU, l *zerolog.Logger) IClient {
+      larkClient := newLarkClient(config.FEISHUHost, config.Debug)
+      return &Client{
+        L:          l,
+        FEISHUHost: config.FEISHUHost,
+        larkClient: larkClient,
+        Debug:      config.Debug,
+      }
+    }
+
+    func (c *Client) debug(resp *resty.Response) {
+      if !c.Debug {
+        return
+      }
+      c.L.Print("  URL        :", resp.Request.URL)
+      c.L.Print("Response Info:")
+      c.L.Print("  Status     :", resp.Status())
+      c.L.Print("  Time       :", resp.Time())
+      c.L.Print("  Body       :\n", resp)
+    }
+
+    // deprecated, use getv2
+    func (c *Client) get(path string, receiver interface{}) ([]byte, error) { //nolint:unparam
+      url := c.FEISHUHost + path
+      cli := resty.New()
+      var resp *resty.Response
+      r := cli.R()
+      resp, err := r.SetHeader("content-type", "application/json; charset=utf-8").Get(url)
+      if err != nil {
+        return nil, err
+      }
+      c.debug(resp)
+      resBody := resp.Body()
+      if err := json.Unmarshal(resBody, receiver); err != nil {
+        return nil, err
+      }
+      return resBody, nil
+    }
+
+    func (c *Client) handleRequest(method, path string, body, receiver interface{}, options ...RequestOption) ([]byte, error) {
+      url := c.FEISHUHost + path
+      cli := resty.New()
+      var resp *resty.Response
+      r := cli.R()
+      if len(options) != 0 {
+        if options[0].AppName != "" {
+          r.SetHeader(AppNameHeader, options[0].AppName)
+        }
+      }
+      var err error
+      switch method {
+      case "GET":
+        resp, err = r.SetHeader("content-type", "application/json; charset=utf-8").Get(url)
+      case "PATCH":
+        resp, err = r.SetHeader("content-type", "application/json").SetBody(body).Patch(url)
+      case "POST":
+        resp, err = r.SetHeader("content-type", "application/json").SetBody(body).Post(url)
+      case "DELETE":
+        resp, err = r.SetHeader("content-type", "application/json").SetBody(body).Delete(url)
+      default:
+        return nil, errors.New("Invalid method")
+      }
+      if err != nil {
+        return nil, err
+      }
+      c.debug(resp)
+      resBody := resp.Body()
+      if resp.StatusCode() > 200 {
+        return nil, errors.Errorf("feishu %s failed, path: %s", method, path)
+      }
+      d := struct {
+        Code int
+        Msg  string
+        Data any
+      }{}
+      d.Data = receiver
+      if err := json.Unmarshal(resBody, &d); err != nil {
+        return nil, err
+      }
+      if d.Code != 0 {
+        return nil, errors.Errorf("failed to %s %s, err: %s", method, path, d.Msg)
+      }
+      return resBody, nil
+    }
+
+    func (c *Client) getv2(path string, receiver interface{}, options ...RequestOption) ([]byte, error) {
+      return c.handleRequest("GET", path, nil, receiver, options...)
+    }
+
+    func (c *Client) delete(path string, body interface{}, receiver interface{}, options ...RequestOption) ([]byte, error) {
+      return c.handleRequest("DELETE", path, body, receiver, options...)
+    }
+
+    func (c *Client) patch(path string, body interface{}, receiver interface{}, options ...RequestOption) ([]byte, error) {
+      return c.handleRequest("PATCH", path, body, receiver, options...)
+    }
+
+    func (c *Client) post(path string, body, receiver interface{}, options ...RequestOption) ([]byte, error) {
+      return c.handleRequest("POST", path, body, receiver, options...)
+    }
+
+    func (c *Client) send(path string, payload interface{}, receiver interface{}, options ...RequestOption) ([]byte, error) {
+      payloadbytes, _ := json.Marshal(payload)
+      url := c.FEISHUHost + path
+      cli := resty.New()
+      var resp *resty.Response
+      r := cli.R()
+      if c.Debug {
+        r = r.EnableTrace()
+      }
+      if len(options) != 0 {
+        if options[0].UserAccessToken != "" {
+          r.SetHeader("Authorization", "Bearer "+options[0].UserAccessToken)
+        }
+
+        if options[0].AppName != "" {
+          r.SetHeader(AppNameHeader, options[0].AppName)
+        }
+      }
+      resp, err := r.SetHeader("content-type", "application/json; charset=utf-8").SetBody(bytes.NewBuffer(payloadbytes)).Post(url)
+      if err != nil {
+        return nil, err
+      }
+      if c.Debug {
+        if b, err := json.Marshal(payloadbytes); err == nil {
+          v := map[string]interface{}{}
+          if err := json.Unmarshal(b, &v); err == nil {
+            c.L.Printf("Request Info:\n%#v\n", v)
+          }
+        }
+        c.debug(resp)
+      }
+      var res ResponseMsg
+      res.Data = receiver
+      resBody := resp.Body()
+      if err := json.Unmarshal(resBody, &res); err != nil {
+        return nil, err
+      }
+      if res.Code == 0 {
+        return resBody, nil
+      }
+      if res.Code == 191007 {
+        log.Info().Msg("already unsubscribe calendar")
+        return nil, nil
+      }
+      errmsg := fmt.Sprintf("error: %d, %s", res.Code, res.Message)
+      return nil, errors.New(errmsg)
+    }
+
+    // 替换services中的message方法中发送人的部分
+    func (c *Client) SendMessageV2(content, msgType, receiveID, receiveType string) error {
+      body := M{
+        "receive_id": receiveID,
+        "msg_type":   msgType,
+        "content":    content,
+      }
+
+      path := fmt.Sprintf("/open-apis/im/v1/messages?receive_id_type=%s", receiveType)
+      res := make(M)
+      if _, err := c.send(path, body, &res); err != nil {
+        c.L.Printf("sendCardMessage failed: %+v", res)
+        return err
+      }
+      return nil
+    }
+
+    func (c *Client) SendMessageByUsername(params *MessageBody) error {
+      userEmail := params.Receive + EmailSuffix
+      return c.SendMessageV2(params.Content, params.MsgType, userEmail, "email")
+    }
+
+    // func (c *Client) SendMessageByUsername(params *MessageBody) ([]byte, error) {
+    // 	path := "/messages?receive_type=username"
+    // 	return c.send(path, params, nil)
+    // }
+
+    func (c *Client) SendMessageByChatname(params *MessageBody) ([]byte, error) {
+      path := "/messages?receive_type=chatname"
+      return c.send(path, params, nil)
+    }
+
+    func (c *Client) SendGroupMessageByChatWebhook(params *WebhookMessageBody, webhook string) ([]byte, error) {
+      path := removeWebhookPrefix(webhook)
+      return c.send(path, params, nil)
+    }
+
+    func removeWebhookPrefix(s string) string {
+      prefix := "https://open.feishu.cn"
+      if strings.HasPrefix(s, prefix) {
+        return s[len(prefix):]
+      }
+      return s
+    }
+
+    // 获取飞书user——id
+    // func (c *Client) GetUserIds(emails, mobiles []string) (map[string]string, error) {
+    // 	if len(emails) == 0 && len(mobiles) == 0 {
+    // 		return nil, nil
+    // 	}
+    // 	path := "/get-user-ids"
+    // 	req := map[string][]string{
+    // 		"emails":  emails,
+    // 		"mobiles": mobiles,
+    // 	}
+    // 	body, err := c.send(path, req, nil)
+    // 	if err != nil {
+    // 		return nil, err
+    // 	}
+    // 	res := struct {
+    // 		Code int
+    // 		Data []*UserIDContact
+    // 	}{}
+    // 	if err := json.Unmarshal(body, &res); err != nil {
+    // 		return nil, err
+    // 	}
+    // 	m := map[string]string{}
+    // 	for _, u := range res.Data {
+    // 		contact := u.Email
+    // 		if u.Mobile != "" {
+    // 			contact = u.Mobile
+    // 		}
+    // 		if contact != "" && u.UserID != "" {
+    // 			m[contact] = u.UserID
+    // 		}
+    // 	}
+    // 	return m, nil
+    // }
+
+    type SheetRenderType string
+
+    const (
+      SheetRenderToString       SheetRenderType = "ToString"
+      SheetRenderFormattedValue SheetRenderType = "FormattedValue"
+      SheetRenderFormula        SheetRenderType = "Formula"
+    )
+
+    type getSheetOpt struct {
+      docID             string
+      sheetID           string
+      valueRenderOption SheetRenderType
+    }
+
+    func (c *Client) getAllRowsOfSheet(opt *getSheetOpt, rows any) error {
+      path := "/open-apis/sheets/v2/spreadsheets/" + opt.docID + "/values/" + opt.sheetID
+      qs := ""
+      if opt.valueRenderOption != "" {
+        qs += "valueRenderOption=" + string(opt.valueRenderOption)
+      }
+      if qs != "" {
+        path += "?" + qs
+      }
+      var res ResponseMsg
+      type spreadsheetValues struct {
+        ValueRange struct {
+          Values interface{}
+        }
+      }
+      res.Data = &spreadsheetValues{
+        ValueRange: struct {
+          Values interface{}
+        }{rows},
+      }
+      if _, err := c.get(path, &res); err != nil {
+        return err
+      }
+      return nil
+    }
+
+    func (c *Client) GetAllRowsOfSheet(sheet, sheetId string, rows any) error {
+      opt := getSheetOpt{
+        docID:   sheet,
+        sheetID: sheetId,
+      }
+      return c.getAllRowsOfSheet(&opt, rows)
+    }
+
+    type SheetInfo struct {
+      Sheet            []*Sheet `json:"sheets"`
+      SpreadSheetToken string   `json:"spreadsheet_token"`
+    }
+
+    type Sheet struct {
+      GridProperties `json:"grid_properties"`
+      Hidden         bool         `json:"hidden"`
+      Index          int          `json:"index"`
+      Merges         []*MergeInfo `json:"merges"`
+      ResourceType   string       `json:"resource_type"`
+      SheetID        string       `json:"sheet_id"`
+      Title          string       `json:"title"`
+    }
+
+    type GridProperties struct {
+      ColumnCount       int `json:"column_count"`
+      FrozenColumnCount int `json:"frozen_column_count"`
+      FrozenRowCount    int `json:"frozen_row_count"`
+      RowCount          int `json:"row_count"`
+    }
+
+    type MergeInfo struct {
+      StartRowIndex    int `json:"start_row_index"`
+      EndRowIndex      int `json:"end_row_index"`
+      StartColumnIndex int `json:"start_column_index"`
+      EndColumnIndex   int `json:"end_column_index"`
+    }
+
+    func HandleMergeCell(rows [][]any, merges []*MergeInfo) [][]interface{} {
+      for i, row := range rows {
+      outerLoop:
+        for j, field := range row {
+          if field == nil {
+            // 在merges里找到这个单元格. 如果找到了, 就把mergeInfo的值赋值给这个单元格
+            for _, merge := range merges {
+              rowInRange := (i >= merge.StartRowIndex && i <= merge.EndRowIndex)
+              colInRange := (j >= merge.StartColumnIndex && j <= merge.EndColumnIndex)
+              if rowInRange && colInRange {
+                rows[i][j] = rows[merge.StartRowIndex][merge.StartColumnIndex]
+                continue outerLoop
+              }
+            }
+          }
+        }
+      }
+      return rows
+    }
+
+    type UnMergeCellsSheetInfo struct {
+      Title   string
+      SheedID string
+      Rows    [][]any
+    }
+
+    // GetUnMergeCellsSheetByDocumentLinkWithSheetTitle
+    // 获取链接内指定sheet title的sheet表格，并填充合并单元格的值
+    //
+    //	@receiver c
+    //	@param link 飞书电子表格链接
+    //	@param sheetTitle 希望获取的sheet的title集合
+    //	@return []*UnMergeCellsSheetInfo
+    //	@return error
+    func (c *Client) GetUnMergeCellsSheetByDocumentLinkWithSheetTitle(link string, sheetTitle []string) ([]*UnMergeCellsSheetInfo, error) {
+      var sheetInfos []*UnMergeCellsSheetInfo
+      if len(sheetTitle) == 0 {
+        return sheetInfos, nil
+      }
+
+      _, sheetInfo, err := c.GetSheetInfosOfDocumentLink(link)
+      if err != nil {
+        return nil, err
+      }
+
+      for _, sheet := range sheetInfo.Sheet {
+        // 只尝试获取指定Title的sheet
+        if !slices.Contains(sheetTitle, sheet.Title) {
+          continue
+        }
+        var rows [][]any
+        if err := c.GetAllRowsOfSheet(sheetInfo.SpreadSheetToken, sheet.SheetID, &rows); err != nil {
+          return nil, err
+        }
+        // 填充合并单元格的值
+        rows = HandleMergeCell(rows, sheet.Merges)
+        sheetInfos = append(sheetInfos, &UnMergeCellsSheetInfo{
+          Title:   sheet.Title,
+          SheedID: sheet.SheetID,
+          Rows:    rows,
+        })
+      }
+      return sheetInfos, nil
+    }
+
+    func (c *Client) GetUnMergeCellsSheetByDocumentLink(link string) ([]*UnMergeCellsSheetInfo, error) {
+      _, sheetInfo, err := c.GetSheetInfosOfDocumentLink(link)
+      if err != nil {
+        return nil, err
+      }
+      var sheetInfos []*UnMergeCellsSheetInfo
+      for _, sheet := range sheetInfo.Sheet {
+        var rows [][]any
+        if err := c.GetAllRowsOfSheet(sheetInfo.SpreadSheetToken, sheet.SheetID, &rows); err != nil {
+          return nil, err
+        }
+        // 填充合并单元格的值
+        rows = HandleMergeCell(rows, sheet.Merges)
+        sheetInfos = append(sheetInfos, &UnMergeCellsSheetInfo{
+          Title:   sheet.Title,
+          SheedID: sheet.SheetID,
+          Rows:    rows,
+        })
+      }
+      return sheetInfos, nil
+    }
+
+    func (c *Client) GetSheetIdsOfDocumentLink(link string) (*string, []string, error) {
+      if !strings.HasPrefix(link, "https://li.feishu.cn/sheets/") {
+        return nil, nil, errors.New("invalid document link")
+      }
+      base := path.Base(link)
+      if strings.Contains(base, "?") {
+        base = strings.Split(base, "?")[0]
+      }
+      path := "/open-apis/sheets/v3/spreadsheets/" + base + "/sheets/query"
+      var res ResponseMsg
+      type spreadsheets struct {
+        Sheets []struct {
+          SheetID string `json:"sheet_id"`
+        }
+      }
+      res.Data = &spreadsheets{}
+      if _, err := c.get(path, &res); err != nil {
+        return nil, nil, err
+      }
+      sheets, ok := res.Data.(*spreadsheets)
+      if !ok {
+        return nil, nil, errors.New("invalid response data")
+      }
+      var sheetIds []string
+      for _, sheet := range sheets.Sheets {
+        sheetIds = append(sheetIds, sheet.SheetID)
+      }
+      return &base, sheetIds, nil
+    }
+
+    type ChatDetail struct {
+      Code int
+      Data *ChatInfo
+    }
+
+    func (c *Client) GetChatInfoByID(chatId string) (*ChatInfo, error) {
+      path := "/open-apis/im/v1/chats/" + chatId
+      var res *ChatDetail
+      _, err := c.get(path, &res)
+      if err != nil {
+        return nil, err
+      }
+      res.Data.ChatID = chatId
+      return res.Data, nil
+    }
+
+    func (c *Client) sendMessage(content *MessageContent, receivetype, msgtype, receiveID string) (*MessageResponse, error) {
+      jsonbytes, err := json.Marshal(content)
+      if err != nil {
+        return nil, err
+      }
+      body := M{
+        "receive_id": receiveID,
+        "msg_type":   msgtype,
+        "content":    string(jsonbytes),
+      }
+
+      path := fmt.Sprintf("/open-apis/im/v1/messages?receive_id_type=%s", receivetype)
+
+      var res MessageData
+
+      _, err = c.send(path, body, &res)
+      if err != nil {
+        c.L.Printf("sendCardMessage failed: %+v", res)
+        return nil, err
+      }
+      return &MessageResponse{
+        Code:    0,
+        Message: "success",
+        Data:    res,
+      }, nil
+    }
+
+    func (c *Client) SendMessageByEmail(content *MessageContent, msgtype, email string) (*MessageResponse, error) {
+      return c.sendMessage(content, "email", msgtype, email)
+    }
+
+    /*
+    *
+
+      为多个emails用户发送消息，每个发送间隔100ms
+      atLeastOneSuccess true 如果全部发送失败报错
+      atLeastOneSuccess false 其中有一个用户发送失败方法报错
+    */
+    func (c *Client) SendMessageByEmails(content *MessageContent, msgtype string, emails []string, atLeastOneSuccess bool) error {
+      errList := []string{}
+      for _, email := range emails {
+        _, err := c.SendMessageByEmail(content, msgtype, email)
+        if err != nil {
+          if !atLeastOneSuccess {
+            return err
+          }
+          errList = append(errList, err.Error())
+        }
+        time.Sleep(100 * time.Millisecond)
+      }
+
+      if len(errList) > 0 {
+        if len(errList) == len(emails) {
+          return fmt.Errorf("send message failed , errors: %s", strings.Join(errList, ","))
+        } else {
+          log.Warn().Msgf("send message failed %s", strings.Join(errList, ","))
+        }
+      }
+      return nil
+    }
+
+    func (c *Client) SendGroupChatMessage(content *MessageContent, msgtype, groupChatID string) (*MessageResponse, error) {
+      return c.sendMessage(content, "chat_id", msgtype, groupChatID)
+    }
+
+    func (c *Client) SendMessageByGroupChats(content *MessageContent, msgtype string, groupChatIDs []string) error {
+      if len(groupChatIDs) == 0 {
+        c.L.Printf("groupIds is empty")
+        return nil
+      }
+      var res []*error
+      for _, v := range groupChatIDs {
+        _, err := c.sendMessage(content, "chat_id", msgtype, v)
+        if err != nil {
+          c.L.Error().Err(err).Msgf("send card by groupId: %s fail", v)
+          res = append(res, &err)
+          continue
+        }
+      }
+      // 如果都err则返回err
+      if len(res) == len(groupChatIDs) {
+        return errors.New("send card by groupIds fail")
+      }
+      return nil
+    }
+
+    func (c *Client) ReplyMessageByCard(content *MessageContent, msgtype, messageID string, isReplyInThread bool) (*MessageResponse, error) {
+      jsonbytes, err := json.Marshal(content)
+      if err != nil {
+        return nil, err
+      }
+      return c.replyMessage(jsonbytes, msgtype, messageID, isReplyInThread)
+    }
+
+    func (c *Client) ReplyMessageByText(text *TextContent, msgtype, messageID string, isReplyInThread bool) (*MessageResponse, error) {
+      jsonbytes, err := json.Marshal(text)
+      if err != nil {
+        return nil, err
+      }
+      return c.replyMessage(jsonbytes, msgtype, messageID, isReplyInThread)
+    }
+
+    func (c *Client) replyMessage(context []byte, msgtype, messageID string, isReplyInThread bool) (*MessageResponse, error) {
+      body := M{
+        "reply_in_thread": isReplyInThread, // 是否以话题形式回复, 若要回复的消息已经是话题消息，则默认以话题形式进行回复
+        "msg_type":        msgtype,
+        "content":         string(context),
+      }
+
+      path := fmt.Sprintf("/open-apis/im/v1/messages/%s/reply", messageID)
+      var res MessageData
+      _, err := c.send(path, body, &res)
+      if err != nil {
+        c.L.Printf("reply Message failed: %+v", res)
+        return nil, err
+      }
+      return &MessageResponse{
+        Code:    0,
+        Message: "success",
+        Data:    res,
+      }, nil
+    }
+
+    const _chatListURL = "/open-apis/im/v1/chats/"
+
+    func (c *Client) getChatListOfBot(pageSize string, pageToken string) (*ChatListResponse, error) {
+      path, err := xhttp.SetParams(_chatListURL, "page_size", pageSize, "page_token", pageToken)
+      if err != nil {
+        return nil, err
+      }
+      var res *ChatListResponse
+      _, err = c.get(path, &res)
+      if err != nil {
+        return nil, err
+      }
+      if res.Code != 0 {
+        return nil, errors.New(res.Msg)
+      }
+      return res, nil
+    }
+
+    func (c *Client) GetChatListOfBot(pageSize string, pageToken string) ([]*ChatInfo, string, error) {
+      res, err := c.getChatListOfBot(pageSize, pageToken)
+      if err != nil {
+        return nil, "", errors.New(res.Msg)
+      }
+      return res.Data.Items, res.Data.PageToken, nil
+    }
+
+    func (c *Client) GetAllChatListOfBot() ([]*ChatInfo, error) {
+      var chatList []*ChatInfo
+      pageToken := ""
+      for {
+        chatRes, err := c.getChatListOfBot("100", pageToken)
+        if err != nil {
+          return nil, err
+        }
+        chatList = append(chatList, chatRes.Data.Items...)
+        if !chatRes.Data.HasMore {
+          break
+        }
+        pageToken = chatRes.Data.PageToken
+      }
+      return chatList, nil
+    }
+
+    func (c *Client) GetDocumentbriefBylink(link string) (*DocumentBrief, error) {
+      linklist := strings.Split(link, "/")
+      dType := linklist[len(linklist)-2 : len(linklist)-1][0]
+      dID := linklist[len(linklist)-1]
+      var res *DocumentBrief
+      var err error
+      if dType == "docs" {
+        res, err = c.GetOldDocumentbriefByID(dID)
+      } else {
+        res, err = c.GetNewDocumentbriefByID(dID)
+      }
+      if err != nil {
+        return nil, err
+      }
+      return res, nil
+    }
+
+    func (c *Client) GetNewDocumentbriefByID(dID string) (*DocumentBrief, error) {
+      path := "/open-apis/docx/v1/documents/" + dID
+      type Brief struct {
+        Code int            `json:"code"`
+        Data *DocumentBrief `json:"data"`
+      }
+      var res *Brief
+      _, err := c.get(path, &res)
+      if err != nil {
+        return nil, err
+      }
+      if res.Code != 0 {
+        return nil, fmt.Errorf("get new documentbrief by ID failed, ID:%s, code:%d", dID, res.Code)
+      }
+      return res.Data, nil
+    }
+
+    func (c *Client) GetOldDocumentbriefByID(dId string) (*DocumentBrief, error) {
+      path := "/open-apis/doc/v2/meta/" + dId
+      // Document改为非指针,防止500，如果返回数据Document内容为空，说明原数据为空，为正常业务逻辑
+      type Brief struct {
+        Code int      `json:"code"`
+        Data Document `json:"data"` // old: Data *Document `json:"data"`
+      }
+      var res Brief
+      _, err := c.get(path, &res)
+      if err != nil {
+        return nil, err
+      }
+      if res.Code != 0 {
+        return nil, fmt.Errorf("get old documentbrief by ID failed, ID:%s, code:%d", dId, res.Code)
+      }
+      d := DocumentBrief{
+        Document: res.Data,
+      }
+      return &d, nil
+    }
+
+    func (c *Client) GetJssdkTicketInfo(userAccessToken string) (*models.JssdkInfo, error) {
+      path := "/get-jssdk-info"
+      req := struct {
+        UserAccessToken string `json:"data,omitempty"`
+      }{UserAccessToken: userAccessToken}
+
+      body, err := c.send(path, &req, nil)
+      if err != nil {
+        return nil, err
+      }
+      var res models.JssdkInfo
+      if err := json.Unmarshal(body, &res); err != nil {
+        return nil, err
+      }
+      return &res, nil
+    }
+
+    func (c *Client) CreateDocVersion(params *CreateDocVersionRequest) (*CreateDocVersionResponse, error) {
+      tokenID := GetDocTokenID(params.FileLinkOrID)
+      if tokenID == "" {
+        return nil, errors.Errorf("文档ID不能为空: %s", params.FileLinkOrID)
+      }
+      userIdType := "user_id"
+      if params.UserIdType != "" {
+        userIdType = params.UserIdType
+      }
+      path := fmt.Sprintf("/open-apis/drive/v1/files/%s/versions?user_id_type=%s", tokenID, userIdType)
+      req := struct {
+        Name       string `json:"name"`
+        Version    string `json:"version"`
+        ObjType    string `json:"obj_type"`
+        ParentType string `json:"parent_type"`
+      }{Name: params.Name, Version: params.UserAccessToken, ObjType: "docx", ParentType: "docx"}
+      option := RequestOption{
+        UserAccessToken: params.UserAccessToken,
+      }
+
+      body, err := c.send(path, &req, nil, option)
+      if err != nil {
+        return nil, err
+      }
+      var res CreateDocVersionResponse
+      if err := json.Unmarshal(body, &res); err != nil {
+        return nil, err
+      }
+      return &res, nil
+    }
+
+    func (c *Client) GetUserAccessTokenInfoByCode(code string) (*models.UserAccessTokenInfo, error) {
+      path := "/open-apis/authen/v1/access_token"
+      var res models.UserAccessTokenInfo
+      req := M{
+        "grant_type": GrantType,
+        "code":       code,
+      }
+      _, err := c.send(path, req, &res)
+      if err != nil {
+        c.L.Error().Msgf("get user_access_token error")
+        return nil, err
+      }
+      return &res, nil
+    }
+
+    func (c *Client) RefreshUserAccessToken(refreshToken string) (*models.UserAccessTokenInfo, error) {
+      path := "/open-apis/authen/v1/refresh_access_token"
+      var res models.UserAccessTokenInfo
+      req := M{
+        "grant_type":    "refresh_token",
+        "refresh_token": refreshToken,
+      }
+      _, err := c.send(path, req, &res)
+      if err != nil {
+        c.L.Error().Msgf("get user_access_token error")
+        return nil, err
+      }
+      return &res, nil
+    }
+
+    func (c *Client) GetSignatureInfo(url string, ticket string) (*models.SignatureInfo, error) {
+      noncestr, err := crypt.ShortID(16)
+      if err != nil {
+        return nil, err
+      }
+      timestamp := time.Now().UnixMilli()
+      timestampstr := fmt.Sprintf("%d", timestamp)
+      verifyStr := "jsapi_ticket=" + ticket + "&noncestr=" + noncestr + "&timestamp=" + timestampstr + "&url=" + url
+      signature := hex.EncodeToString(crypt.Sha1Sign(verifyStr))
+      signatureInfo := models.SignatureInfo{
+        Signature: signature,
+        Noncestr:  noncestr,
+        TimeStamp: timestamp,
+        Url:       url,
+      }
+      return &signatureInfo, nil
+    }
+
+    func (c *Client) GetUserOpenIdByEmails(emails []string) ([]models.UserOpenIds, error) {
+      path := "/open-apis/contact/v3/users/batch_get_id?user_id_type=open_id"
+      req := struct {
+        Emails []string `json:"emails,omitempty"`
+      }{Emails: emails}
+      body, err := c.send(path, req, nil)
+      if err != nil {
+        c.L.Error().Msgf("get user_open_id error")
+        return nil, err
+      }
+      type ResBody struct {
+        Code int    `json:"code,omitempty"`
+        Msg  string `json:"msg,omitempty"`
+        Data struct {
+          UserList []models.UserOpenIds `json:"user_list,omitempty"`
+        } `json:"data,omitempty"`
+      }
+      var res ResBody
+      if err := json.Unmarshal(body, &res); err != nil {
+        return nil, err
+      }
+      return res.Data.UserList, nil
+    }
+
+    // CreatChat
+    func (c *Client) CreatChat(params *ChatBody) (*ChatResponseData, error) {
+      path := "/open-apis/im/v1/chats?user_id_type=user_id"
+      var res ChatResponseData
+      _, err := c.send(path, params, &res)
+      if err != nil {
+        return nil, err
+      }
+      return &res, nil
+    }
+
+    func (c *Client) DeleteGroupChat(chatID string) error {
+      path := fmt.Sprintf("/open-apis/im/v1/chats/%s", chatID)
+      _, err := c.delete(path, nil, nil)
+      if err != nil {
+        return err
+      }
+      return nil
+    }
+
+    func (c *Client) ActiveJoinChat(chatID string) ([]byte, error) {
+      path := fmt.Sprintf("/open-apis/im/v1/chats/%s/members/me_join", chatID)
+      return c.patch(path, nil, nil)
+    }
+
+    func (c *Client) pullMembersJoinChat(chatID string, ids []string) (*PullMembersJoinChatResponse, error) {
+      path := fmt.Sprintf("/open-apis/im/v1/chats/%s/members?member_id_type=user_id", chatID)
+      param := PullMembersJoinChatParam{
+        IDList: ids,
+      }
+      var res *PullMembersJoinChatResponse
+      _, err := c.send(path, param, &res)
+      if err != nil {
+        return nil, err
+      }
+      return res, nil
+    }
+
+    func (c *Client) pullMembersJoinChatWithLimit(chatID string, limit int, ids []string) (*PullMembersJoinChatResponse, error) {
+      var res *PullMembersJoinChatResponse
+      if len(ids) <= limit {
+        return c.pullMembersJoinChat(chatID, ids)
+      }
+      for i := 0; i < len(ids); i += limit {
+        endIndex := i + limit
+        if endIndex > len(ids) {
+          endIndex = len(ids)
+        }
+        subIDs := ids[i:endIndex]
+
+        tempRes, err := c.pullMembersJoinChat(chatID, subIDs)
+        if err != nil {
+          return nil, err
+        }
+        res = tempRes
+      }
+      return res, nil
+    }
+
+    func (c *Client) PullMembersJoinChat(chatID string, memberType string, memberIds []string) (*PullMembersJoinChatResponse, error) {
+      var res *PullMembersJoinChatResponse
+      // feishu pull members join chat with limit, user_id_list 50, bot_id_list 15
+      if memberType == "user" {
+        return c.pullMembersJoinChatWithLimit(chatID, 50, memberIds)
+      }
+      if memberType == "bot" {
+        return c.pullMembersJoinChatWithLimit(chatID, 15, memberIds)
+      }
+      return res, nil
+    }
+
+    func (c *Client) RemoveMembersOutOfGroupChat(chatID string, memberIds []string) (*RemoveMembersOutOfGroupChatResponse, error) {
+      path := fmt.Sprintf("/open-apis/im/v1/chats/%s/members?member_id_type=user_id", chatID)
+      param := PullMembersJoinChatParam{
+        IDList: memberIds,
+      }
+      var res *RemoveMembersOutOfGroupChatResponse
+      _, err := c.delete(path, param, &res)
+      if err != nil {
+        return nil, err
+      }
+      return res, nil
+    }
+
+    func (c *Client) CreatChatAndSendMessageWithTemplate(params *ChatBody, feishuMessageCtx *FeishuMessageCtx) (*CreateChatAndSendMessageResponse, error) {
+      res, err := c.CreatChatWithBatchJoin(&CreateChatAndSendMessageParam{ChatBody: *params})
+      if err != nil {
+        return res, err
+      }
+
+      feishuMessageCtx.ReceiveId = res.ChatID
+      feishuMessageCtx.ReceiveIdType = "chat_id"
+      return res, SendMessage(feishuMessageCtx)
+    }
+
+    func (c *Client) CreatChatAndSendMessage(params *CreateChatAndSendMessageParam) (*CreateChatAndSendMessageResponse, error) {
+      res, err := c.CreatChatWithBatchJoin(params)
+      if err != nil {
+        return res, err
+      }
+      // 发送群消息
+      if params.MessageType != "" && params.MessageContent != nil {
+        _, err := c.SendGroupChatMessage(params.MessageContent, params.MessageType, res.ChatID)
+        if err != nil {
+          return res, err
+        }
+      }
+
+      return res, nil
+    }
+
+    func (c *Client) CreatChatWithBatchJoin(params *CreateChatAndSendMessageParam) (*CreateChatAndSendMessageResponse, error) {
+      // params.ChatBody.UserIDList的长度小于等于50 和 params.ChatBody.bot_id_list的长度如果都小于等于15，则直接CreatChat接口创建chat
+      var chatID string
+      var res *CreateChatAndSendMessageResponse
+      if len(params.ChatBody.UserIDList) <= 50 && len(params.ChatBody.BotIDList) <= 15 {
+        ChatResponse, err := c.CreatChat(&params.ChatBody)
+        if err != nil {
+          return nil, err
+        }
+        res = &CreateChatAndSendMessageResponse{
+          ChatID: ChatResponse.ChatID,
+        }
+      } else {
+        // 取params.ChatBody.UserIDList列表的前50创建chat
+        newParams := params.ChatBody
+        if len(params.ChatBody.UserIDList) > 50 {
+          newParams.UserIDList = params.ChatBody.UserIDList[:50]
+        } else {
+          newParams.UserIDList = params.ChatBody.UserIDList
+        }
+
+        // 取params.ChatBody.bot_id_list列表的前15创建chat
+        if len(params.ChatBody.BotIDList) > 15 {
+          newParams.BotIDList = params.ChatBody.BotIDList[:15]
+        } else {
+          newParams.BotIDList = params.ChatBody.BotIDList
+        }
+        chatResponse, err := c.CreatChat(&newParams)
+        if err != nil {
+          return nil, err
+        }
+        chatID = chatResponse.ChatID
+        res = &CreateChatAndSendMessageResponse{
+          ChatID: chatID,
+        }
+
+        // 将剩下的用户拉入群
+        if len(params.ChatBody.UserIDList) > 50 {
+          _, err = c.PullMembersJoinChat(chatID, "user", params.ChatBody.UserIDList[50:])
+          if err != nil {
+            return res, err
+          }
+        }
+
+        // 将剩下的bot拉入群
+        if len(params.ChatBody.BotIDList) > 15 {
+          _, err = c.PullMembersJoinChat(chatID, "bot", params.ChatBody.BotIDList[15:])
+          if err != nil {
+            return res, err
+          }
+        }
+      }
+
+      return res, nil
+    }
+  rag_content: |
+    // similar content from file pkg/feishu/models/user.go
+    type UserInfo struct {
+      Name   string `json:"name,omitempty"`
+      EnName string `json:"en_name,omitempty"`
+      Email  string `json:"email,omitempty"`
+      OpenId string `json:"open_id,omitempty"`
+      UserId string `json:"user_id,omitempty"`
+    }
+
+    // similar content from pkg/feishu/interface.go
+    //go:generate mockgen -destination mock_client.go -package feishu -source interface.go
+    type IClient interface {
+      // chat related
+      SendMessageByUsername(params *MessageBody) error
+      SendMessageByChatname(params *MessageBody) ([]byte, error)
+      SendMessageByEmail(content *MessageContent, msgtype, email string) (*MessageResponse, error)
+      SendMessageByEmails(content *MessageContent, msgtype string, emails []string, atLeastOneSuccess bool) error
+      SendGroupChatMessage(content *MessageContent, msgtype, groupChatID string) (*MessageResponse, error)
+      SendMessageByGroupChats(content *MessageContent, msgtype string, groupChatIDs []string) error
+      SendGroupMessageByChatWebhook(params *WebhookMessageBody, webhook string) ([]byte, error)
+      ReplyMessageByCard(content *MessageContent, msgtype, messageID string, isReplyInThread bool) (*MessageResponse, error)
+      ReplyMessageByText(text *TextContent, msgtype, messageID string, isReplyInThread bool) (*MessageResponse, error)
+      CreatChatAndSendMessage(params *CreateChatAndSendMessageParam) (*CreateChatAndSendMessageResponse, error)                            // 不受原生api对邀请用户和机器人的限制
+      CreatChatAndSendMessageWithTemplate(params *ChatBody, feishuMessageCtx *FeishuMessageCtx) (*CreateChatAndSendMessageResponse, error) // 发送消息采用template
+    }
+
+    // similar content from pkg/feishu/message.go
+    // larkcore 指定飞书应用参考CodeReviewSendMessage
+    func SendMessage(feishuMsgCtx *FeishuMessageCtx, options ...larkcore.RequestOptionFunc) error {
+      body := TemplateContext(feishuMsgCtx.TemplateId, feishuMsgCtx.TemplateVersion, feishuMsgCtx.Variable)
+      content, err := json.Marshal(body)
+      if err != nil {
+        return fmt.Errorf("marshal template error: %v", err)
+      }
+      req := larkim.NewCreateMessageReqBuilder().
+        ReceiveIdType(feishuMsgCtx.ReceiveIdType).
+        Body(larkim.NewCreateMessageReqBodyBuilder().
+          ReceiveId(feishuMsgCtx.ReceiveId).
+          MsgType(feishuMsgCtx.MsgType).
+          Content(string(content)).
+          Build()).
+        Build()
+
+      resp, err := feishuMsgCtx.FeishuClient.Im.Message.Create(context.Background(), req, options...)
+      if err != nil {
+        return err
+      }
+      if !resp.Success() {
+        return fmt.Errorf("feishu send notify failed %s", resp.Msg)
+      }
+      return nil
+    }
+
+    // 可以指定使用哪个APP操作
+    func SendMessageV2(feishuMsgCtx *FeishuMessageCtx, appName string) error {
+      return SendMessage(feishuMsgCtx, func(option *larkcore.RequestOption) {
+        if option.Header == nil {
+          option.Header = make(http.Header)
+        }
+        option.Header.Set(AppNameHeader, appName)
+      })
+    }
+
+  task: |
+    Please help to refactor "reply message" related functions to support RequestOption options.

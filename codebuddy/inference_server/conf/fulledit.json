@@ -1,0 +1,91 @@
+{
+  "instances": {
+    "prod.fulledit-0922": {
+      "model_type": "zed",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/zxd-code-complete/data/fullfile_edit_ft/202509220957/best_model/full",
+      "model_labels": {
+        "size": "7B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.92,
+        "enforce_eager": false,
+        "enable_prefix_caching": false,
+        "_enable_logprobs": false,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill": true,
+        "num_speculative_tokens": 80,
+        "max_model_len": 6656
+      },
+      "models": {
+        "fulledit-0922": {
+          "params": {
+            "temperature": 0
+          }
+        }
+      }
+    },
+    "prod.fulledit-0802": {
+      "model_type": "zed",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/zxd-code-complete/data/fullfile_edit_ft/202508020437/best_model/full",
+      "model_labels": {
+        "size": "7B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.92,
+        "enforce_eager": false,
+        "enable_prefix_caching": false,
+        "_enable_logprobs": false,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill": true,
+        "num_speculative_tokens": 80,
+        "max_model_len": 6656
+      },
+      "models": {
+        "fulledit": {
+          "params": {
+            "temperature": 0
+          }
+        },
+        "zed": {
+          "params": {
+            "temperature": 0
+          }
+        }
+      }
+    },
+    "prod.zed-7B": {
+      "model_type": "zed",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/fulledit/zeda/",
+      "model_labels": {
+        "size": "7B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.92,
+        "enforce_eager": false,
+        "enable_prefix_caching": false,
+        "_enable_logprobs": false,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill": true,
+        "num_speculative_tokens": 80,
+        "enable_spec_edit": true,
+        "max_model_len": 5000
+      },
+      "models": {
+        "zed": {
+          "params": {
+            "temperature": 0
+          }
+        }
+      }
+    }
+  }
+}

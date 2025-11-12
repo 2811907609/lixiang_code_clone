@@ -1,0 +1,316 @@
+# Coverity扫描结果JSON字段说明文档
+
+## 概述
+本文档详细说明了Coverity静态代码分析工具扫描结果JSON数据结构中各个字段的含义和作用。
+
+## 顶层字段说明
+
+### 缺陷标识字段
+- **mergeKey**: 唯一的缺陷合并键，用于标识和去重相同的缺陷
+  - 示例: "109493dcbb3b46c7e7940040e6478741"
+  - 用途: 在多次扫描中识别相同的缺陷
+
+- **occurrenceCountForMK**: 该合并键对应的缺陷出现总次数
+  - 示例: 2
+  - 用途: 统计相同缺陷在代码库中的出现频率
+
+- **occurrenceNumberInMK**: 当前缺陷在该合并键中的序号
+  - 示例: 1
+  - 用途: 区分同一类缺陷的不同实例
+
+- **referenceOccurrenceCountForMK**: 参考基线中的缺陷出现次数
+  - 示例: null（无参考基线）
+  - 用途: 与历史版本比较，追踪缺陷变化
+
+### 缺陷分类字段
+- **checkerName**: 检查器名称，标识具体的检查规则
+  - 示例: "MISRA C-2012 Rule 22.10"
+  - 用途: 识别缺陷类型和相关编码标准
+
+- **subcategory**: 缺陷子分类
+  - 示例: "none"
+  - 用途: 进一步细化缺陷类型
+
+- **type**: 缺陷类型标识符
+  - 示例: "MISRA_C_2012_Rule_22.10"
+  - 用途: 程序化处理缺陷类型
+
+- **code-language**: 代码语言
+  - 示例: "c/c++"
+  - 用途: 标识扫描的代码语言
+
+- **extra**: 额外信息
+  - 示例: "errno"
+  - 用途: 提供与缺陷相关的额外上下文信息
+
+- **domain**: 分析域
+  - 示例: "STATIC_C"
+  - 用途: 标识静态分析的具体领域
+
+- **language**: 编程语言
+  - 示例: "C"
+  - 用途: 精确标识代码语言
+
+### 位置信息字段
+- **mainEventFilePathname**: 主事件文件的完整路径
+  - 示例: "/data/jenkins/mvbs/mvbs/src/adapter/posix/src/mvbs_adapter_net_udp.c"
+  - 用途: 定位缺陷在文件系统中的位置
+
+- **strippedMainEventFilePathname**: 主事件文件的相对路径
+  - 示例: "mvbs/src/adapter/posix/src/mvbs_adapter_net_udp.c"
+  - 用途: 提供便于显示的相对路径
+
+- **mainEventLineNumber**: 主事件所在行号
+  - 示例: 180
+  - 用途: 精确定位缺陷位置
+
+- **mainEventColumnNumber**: 主事件所在列号
+  - 示例: 3
+  - 用途: 精确定位缺陷在行中的位置
+
+### 函数信息字段
+- **functionDisplayName**: 函数显示名称
+  - 示例: "mvbs_udp_bind_multicast"
+  - 用途: 用户界面显示的函数名
+
+- **functionMangledName**: 函数编译后的名称
+  - 示例: "mvbs_udp_bind_multicast"
+  - 用途: 编译器内部使用的函数标识
+
+- **functionHtmlDisplayName**: HTML显示用的函数名
+  - 示例: "mvbs_udp_bind_multicast"
+  - 用途: 在HTML报告中显示函数名
+
+- **functionSimpleName**: 简化的函数名
+  - 示例: "mvbs_udp_bind_multicast"
+  - 用途: 提供简洁的函数标识
+
+- **functionSearchName**: 搜索用的函数名
+  - 示例: "mvbs_udp_bind_multicast"
+  - 用途: 在搜索功能中使用的函数名
+
+### 状态和配置字段
+- **properties**: 自定义属性
+  - 示例: {}
+  - 用途: 存储额外的键值对信息
+
+- **localStatus**: 本地状态
+  - 示例: null
+  - 用途: 本地环境中缺陷的处理状态
+
+- **ordered**: 事件是否有序
+  - 示例: true
+  - 用途: 标识events数组中的事件是否按时间顺序排列
+
+- **stateOnServer**: 服务器端状态
+  - 示例: null
+  - 用途: 服务器端缺陷的处理状态
+
+- **localTriage**: 本地分类处理信息
+  - 示例: null
+  - 用途: 本地环境中对缺陷的分类和处理记录
+
+## Events数组说明
+
+### 事件关系和逻辑
+Events数组记录了Coverity发现缺陷的完整执行路径，每个事件按照代码执行的时间顺序排列，形成一个完整的缺陷追踪链。
+
+### 事件字段说明
+每个事件包含以下字段：
+
+- **covLStrEventDescription**: Coverity内部格式的事件描述
+  - 用途: 内部处理和格式化显示
+
+- **eventDescription**: 人类可读的事件描述
+  - 示例: "Condition \"sock_fd_is_invalid(fd)\", taking false branch."
+  - 用途: 直接向用户展示事件含义
+
+- **eventNumber**: 事件序号
+  - 示例: 1, 2, 3
+  - 用途: 标识事件在执行路径中的顺序
+
+- **eventTreePosition**: 事件在分析树中的位置
+  - 示例: "1", "2", "3"
+  - 用途: 表示事件在分析决策树中的位置
+
+- **eventSet**: 事件集合标识
+  - 示例: 0
+  - 用途: 将相关事件分组
+
+- **eventTag**: 事件标签类型
+  - 可能值: "path", "misra_c_2012_rule_22_10_violation"
+  - 用途: 标识事件的类型（路径事件或违规事件）
+
+- **filePathname/strippedFilePathname**: 事件发生的文件路径
+  - 用途: 定位事件发生位置
+
+- **lineNumber/columnNumber**: 事件发生的代码位置
+  - 用途: 精确定位事件在代码中的位置
+
+- **main**: 是否为主要事件
+  - 示例: false, true
+  - 用途: 标识缺陷的核心违规点
+
+- **moreInformationId**: 更多信息的标识符
+  - 示例: null
+  - 用途: 链接到详细信息
+
+- **remediation**: 是否为修复建议
+  - 示例: false
+  - 用途: 标识是否包含修复建议
+
+- **events**: 嵌套事件（通常为null）
+  - 用途: 支持复杂的嵌套事件结构
+
+### 事件执行流程示例分析
+基于提供的示例：
+
+1. **事件1（路径事件）**:
+   - 条件`sock_fd_is_invalid(fd)`为false，程序继续执行
+   - 这是一个分支判断点
+
+2. **事件2（路径事件）**:
+   - 条件`ret`为true，程序进入该分支
+   - 这是另一个关键的分支判断
+
+3. **事件3（违规事件）**:
+   - 主要违规点：检测到errno变量的不当使用
+   - 这是MISRA C-2012 Rule 22.10的违规
+
+事件之间的逻辑关系：前两个事件构建了导致违规的执行路径，第三个事件是实际的违规检测点。
+
+## checkerProperties字段说明
+
+- **category/categoryDescription**: 缺陷类别
+  - 示例: "Coding standard violation"
+  - 用途: 高级别的缺陷分类
+
+- **cweCategory**: CWE（Common Weakness Enumeration）分类
+  - 示例: "754"
+  - 用途: 与国际标准的弱点分类对应
+
+- **weaknessIdCategory**: 弱点ID分类
+  - 示例: "none"
+  - 用途: 更细粒度的弱点分类
+
+- **issueKinds**: 问题类型数组
+  - 示例: ["QUALITY"]
+  - 用途: 标识问题的性质（质量、安全、性能等）
+
+- **eventSetCaptions**: 事件集标题
+  - 示例: []
+  - 用途: 为事件集提供描述性标题
+
+- **impact/impactDescription**: 影响级别
+  - 示例: "Low"
+  - 用途: 评估缺陷的严重程度
+
+- **subcategoryLocalEffect**: 子类别局部影响
+  - 示例: "MISRA Violation"
+  - 用途: 描述缺陷的具体影响类型
+
+- **subcategoryShortDescription**: 简短描述
+  - 示例: "MISRA C-2012 Resources"
+  - 用途: 提供缺陷类型的简要说明
+
+- **subcategoryLongDescription**: 详细描述
+  - 示例: "The value of errno shall only be tested when the last function to be called was an errno-setting-function."
+  - 用途: 提供详细的规则说明和违规原因
+
+- **MISRACategory**: MISRA规则类别
+  - 示例: "Required"
+  - 用途: 标识MISRA规则的强制级别（Required、Advisory、Mandatory）
+
+## 使用建议
+
+1. **缺陷定位**: 使用mainEventFilePathname和mainEventLineNumber快速定位缺陷
+2. **缺陷分析**: 通过events数组分析缺陷的形成路径
+3. **优先级排序**: 根据impact和MISRACategory确定修复优先级
+4. **重复缺陷处理**: 使用mergeKey识别和处理重复缺陷
+5. **修复验证**: 关注main为true的事件，这是核心违规点
+
+---
+
+# MISRA Rules JSON字段说明文档
+
+## 概述
+本文档详细说明了MISRA C-2012规则JSON数据结构中各个字段的含义和作用。
+
+## MISRA规则字段说明
+
+### 规则基本信息字段
+- **category**: 规则类别，标识规则的强制级别
+  - 可能值: "Required", "Advisory", "Mandatory"
+  - 示例: "Required"
+  - 用途: 确定规则的重要性和强制程度
+    - Required: 必须遵守的规则
+    - Advisory: 建议遵守的规则
+    - Mandatory: 强制性规则，不允许例外
+
+- **analysis**: 分析类型，标识规则是否可以通过静态分析检测
+  - 可能值: "Decidable", "Undecidable", "System"
+  - 示例: "Decidable"
+  - 用途: 判断工具是否能自动检测该规则违规
+    - Decidable: 可通过静态分析决定是否违规
+    - Undecidable: 无法完全通过静态分析决定
+    - System: 需要系统级分析
+
+- **applies_to**: 适用的C标准版本
+  - 可能值: "C90", "C99", "C90, C99"
+  - 示例: "C90, C99"
+  - 用途: 标识规则适用的C语言标准版本
+
+### 规则内容字段
+- **Amplification**: 规则放大说明
+  - 示例: "This rule prevents programming errors and confusion..."
+  - 用途: 提供规则的详细解释和适用场景
+
+- **Rationale**: 规则原理
+  - 示例: "Problems associated with language features..."
+  - 用途: 解释制定该规则的理由和背景
+
+- **Example**: 代码示例
+  - 示例: "/* Example code demonstrating compliance with this rule */"
+  - 用途: 提供符合或违反规则的具体代码示例
+
+- **Exception**: 例外情况
+  - 示例: "No exceptions are defined for this rule."
+  - 用途: 说明规则允许的例外情况或特殊处理
+
+- **See-also**: 相关规则引用
+  - 示例: "Rule 17.4, Rule 17.7, Dir 1.1"
+  - 用途: 引用相关的其他MISRA规则或指令
+
+- **upper_class**: 规则完整标题
+  - 示例: "1.1 \nThe program shall contain no violations of the standard C syntax and"
+  - 用途: 提供规则的完整编号和标题描述
+
+## 规则命名约定
+
+### 规则ID格式
+- **格式**: "rule_X_Y"
+  - X: 主要章节号
+  - Y: 规则序号
+  - 示例: "rule_1_1", "rule_8_13"
+
+### 规则编号系统
+MISRA C-2012采用层次化编号系统：
+- 第1-8章: 基础语言特性和声明
+- 第9-12章: 初始化和表达式
+- 第13-16章: 控制流和语句
+- 第17-22章: 函数、指针、预处理器和标准库
+
+## 使用建议
+
+1. **规则优先级**: 根据category字段确定修复优先级
+   - Mandatory > Required > Advisory
+
+2. **工具检测**: 根据analysis字段判断是否可自动检测
+   - Decidable规则优先考虑工具自动检测
+   - Undecidable规则需要人工审查
+
+3. **标准兼容性**: 使用applies_to字段确保规则适用于目标C标准
+
+4. **代码修复**: 参考Example和Rationale字段理解正确的编码方式
+
+5. **例外处理**: 在特殊情况下参考Exception字段确定是否允许违规

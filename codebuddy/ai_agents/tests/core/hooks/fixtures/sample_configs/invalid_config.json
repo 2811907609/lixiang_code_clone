@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "InvalidEvent": [
+      {
+        "matcher": "TestTool",
+        "hooks": [
+          {
+            "type": "invalid_type",
+            "command": "echo 'test'"
+          }
+        ]
+      }
+    ]
+  },
+  "hook_settings": {
+    "default_timeout": "invalid_timeout",
+    "max_concurrent_hooks": -1
+  }
+}

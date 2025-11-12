@@ -1,0 +1,55 @@
+FROM artifactory.ep.chehejia.com/docker-remote/alpine:3.22.0 as uv_binary
+
+# ADD https://github.com/astral-sh/uv/releases/download/0.7.21/uv-x86_64-unknown-linux-gnu.tar.gz /tmp/uv.tar.gz
+ADD https://artifactory.ep.chehejia.com/artifactory/generic-github-releases-remote/astral-sh/uv/releases/download/0.7.21/uv-x86_64-unknown-linux-gnu.tar.gz /tmp/uv.tar.gz
+
+RUN tar -xz -C /tmp/ -f /tmp/uv.tar.gz && rm /tmp/uv.tar.gz
+
+
+FROM artifactory.ep.chehejia.com/docker-remote/ubuntu:22.04
+
+LABEL org.opencontainers.image.authors="Zhang Xudong"
+
+COPY deploy/ubuntu2204.sourcelist /etc/apt/sources.list
+
+# astral-sh/uv:0.7.8
+# this is not work in container (when uv pypi registry is artifactory), due to rust/musl dns resolve problems
+# COPY --from=artifactory.ep.chehejia.com/ghcr.io/astral-sh/uv:0.7.21-debian /usr/local/bin/uv /usr/local/bin/uvx /bin/
+COPY --from=uv_binary /tmp/uv-x86_64-unknown-linux-gnu/uv /tmp/uv-x86_64-unknown-linux-gnu/uvx /bin/
+
+# set bash as default shell
+SHELL ["/bin/bash", "-c"]
+
+# Avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# disable https cert check since it will fail when ca-certificates is not installed
+RUN echo 'Acquire::https::Verify-Peer "false";' > /etc/apt/apt.conf.d/99verify-peer.conf \
+    && echo 'Acquire::https::Verify-Host "false";' > /etc/apt/apt.conf.d/99verify-host.conf \
+    && apt update \
+    && apt install -y --no-install-recommends tzdata locales ca-certificates openssh-client less rsync wget curl lsof git \
+    && apt-get clean \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && rm -rf /var/lib/apt/lists/* \
+    && locale-gen en_US.UTF-8 \
+    && uv python install 3.12.8
+
+COPY . /agent-workspace/ai-mono-repo
+
+# Set working directory and sync dependencies
+WORKDIR /agent-workspace/ai-mono-repo/codebuddy/ai_agents
+
+RUN uv sync --all-groups
+
+# Create output directory for artifacts
+RUN mkdir -p /output
+
+# Export built artifacts as tar files (similar to prepare_trae_agent)
+RUN cd /agent-workspace && \
+    tar -cf /output/ai-mono-repo.tar ai-mono-repo && \
+    tar -cf /output/uv.tar -C /bin uv && \
+    tar -cf /output/uv_shared.tar -C /root/.local/share uv
+
+# Set the default command
+CMD ["bash"]

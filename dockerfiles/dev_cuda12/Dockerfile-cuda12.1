@@ -1,0 +1,65 @@
+FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
+
+MAINTAINER zhangxudong@lixiang.com
+
+COPY ubuntu2204.sourcelist /etc/apt/sources.list
+
+RUN apt update  && \
+    apt install -y --no-install-recommends sudo python3.11 python3.11-dev git openssh-server tmux neovim \
+        rsync wget curl silversearcher-ag lsof iproute2 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY get-pip.py /tmp/get-pip.py
+RUN python3.11 /tmp/get-pip.py
+
+RUN python3.11 -m pip install -i https://mirrors.aliyun.com/pypi/simple jupyterlab==3.0 torch && \
+  useradd --create-home jovyan && chmod u+w /etc/sudoers && \
+  echo 'jovyan ALL=(ALL)       NOPASSWD: ALL' >> /etc/sudoers && \
+  echo 'AuthorizedKeysFile /auth/authorized_keys' >> /etc/ssh/sshd_config && \
+  mkdir /auth && chown jovyan:jovyan /auth/  && \
+  echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config && \
+  mkdir -p $HOME/.pip/ && \
+  echo '[global]\n\
+    index-url = https://mirrors.aliyun.com/pypi/simple/\n\
+    [install]\n\
+    trusted-host=mirrors.aliyun.com\n' >> $HOME/.pip/pip.conf && \
+  pip cache purge
+
+RUN mkdir -p /code/transformers \
+    && pip install aiohttp nvitop tiktoken ctranslate2==3.23.0 accelerate scipy bitsandbytes \
+    && git clone https://github.com/huggingface/transformers.git /code/transformers && cd /code/transformers && pip install -e .
+
+RUN { rm -rf /code/vllm || echo 'not existed'; } && \
+    echo force rebuild && \
+    mkdir -p /code/vllm && git clone https://github.com/vllm-project/vllm.git /code/vllm && cd /code/vllm \
+    && git checkout 1db83e3 && pip install -e . \
+    && pip cache purge
+
+# TODO add duckdb
+RUN python3.11 -m pip install -i https://mirrors.aliyun.com/pypi/simple duckdb datasets joblib sentence_transformers cn2an \
+    evaluate tensorboard wandb progress \
+    && sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 \
+    && sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
+
+RUN pip install lpai --ignore-installed \
+  --extra-index-url https://gitlabee.chehejia.com/api/v4/projects/10569/packages/pypi/simple \
+  --extra-index-url https://gitlabee.chehejia.com/api/v4/projects/10037/packages/pypi/simple
+
+RUN mkdir -p /code/llama-recipes \
+    && git clone --depth 1 https://github.com/facebookresearch/llama-recipes.git /code/llama-recipes \
+    && cd /code/llama-recipes && pip install -e .
+
+RUN mkdir -p /code/bigcode-evaluation-harness \
+    && git clone --depth 1  https://github.com/bigcode-project/bigcode-evaluation-harness.git /code/bigcode-evaluation-harness \
+    && cd /code/bigcode-evaluation-harness && \
+    sed -i '/pyext/d' requirements.txt \
+    && pip install -e .
+
+RUN pip install einops deepspeed ujson jsonlines transformers_stream_generator ftfy pybind11
+
+USER jovyan
+
+ENV LD_LIBRARY_PATH /usr/local/cuda/compat
+
+CMD jupyter-lab --allow-root --notebook-dir=${PWD} --ip=0.0.0.0 --no-browser --port=8888 --ServerApp.token= --ServerApp.password= --ServerApp.allow_origin=* --ServerApp.base_url=${NB_PREFIX} --ServerApp.authenticate_prometheus=False --ServerApp.max_body_size=536870912 --ServerApp.max_body_size=536870912

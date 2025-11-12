@@ -1,0 +1,129 @@
+
+
+[languages]
+[languages.common]
+[languages.common.tokenizer]
+ignore_keywords = ['if', 'else', 'bool', 'true', 'false', 'int', 'return', 'is', 'the', 'of', 'to', 'a', 'an']
+
+[languages.c]
+name = "c"
+file_extensions = ["c", "h"]
+
+[languages.c.tokenizer]
+with_common_ignore_keywords = true
+ignore_keywords = ['void', 'ifdef', 'endif', 'NULL']
+
+[languages.c.parse_name_entities]
+# 获取一些命名实体，比如类型名，函数名，变量名，然后去includes里面找他们
+query = """
+((type_identifier) @name)
+
+;; 函数调用
+(
+  (call_expression
+    function: (identifier) @name)
+)
+"""
+
+
+[languages.c.parse_includes]
+query = """
+(preproc_include
+    (string_literal) @local_include
+)
+"""
+trim_prefixes = ['"', '<']
+trim_suffixes = ['"', '<']
+
+[languages.c.current_snippet]
+# 当前 snippet 的最小单位是function, 后续可以扩展其他的
+node_kinds = ['function_definition']
+
+[languages.c.parse_outlines]
+query = """
+;; use sig_name for each type/function/variable/macro so that we can get
+;; it by name later
+
+;; Find type definitions (struct, union, typedef)
+((type_definition
+  (struct_specifier
+    (type_identifier) @sig_name
+  )
+) @type1
+)
+
+;; macros
+(
+  (preproc_def
+    (identifier) @sig_name
+  ) @macro1
+)
+
+
+;; Find function declarations like void aeApiName(void)
+((function_definition
+  declarator: (function_declarator
+    declarator: (identifier) @func_name1 @sig_name
+    parameters: (parameter_list) @parameters)))
+
+;; Find function declarations with point *aeApiName(void)
+((function_definition
+  (pointer_declarator
+    (function_declarator
+      (identifier) @func_name1 @sig_name
+      (parameter_list) @parameters)
+  )
+))
+
+(
+  (declaration
+    declarator: (function_declarator
+      (identifier) @sig_name
+    )
+  ) @func_name2
+  ;; (#eq? @func_name2 ";")
+)
+"""
+
+formatter.type1.type_name = "type"
+formatter.type1.fmt = "{type1}"
+
+formatter.macro1.type_name = "macro"
+formatter.macro1.fmt = "{macro1}"
+
+formatter.func_name1.type_name = "func"
+formatter.func_name1.fmt = "{func_name1} {parameters}"
+
+formatter.func_name2.type_name = "func_declare"
+formatter.func_name2.fmt = "{func_name2}"
+
+[languages.go]
+name = "go"
+
+[languages.go.tokenizer]
+with_common_ignore_keywords = true
+ignore_keywords = ['func', 'nil']
+
+[languages.go.parse_includes]
+query = """
+(import_spec_list
+     (import_spec) @system_include
+)
+"""
+trim_prefixes = ['"']
+trim_suffixes = ['"']
+
+[languages.go.current_snippet]
+# 当前 snippet 的最小单位是function, 后续可以扩展其他的
+node_kinds = ['function_declaration']
+
+[languages.go.parse_outlines]
+query = """
+(function_declaration
+  (identifier) @func_name1
+  (parameter_list) @parameters
+  (type_identifier) @return_type
+)
+"""
+formatter.func_name1.type_name = "func"
+formatter.func_name1.fmt = "{func_name1} {parameters} {return_type}"

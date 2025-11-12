@@ -1,0 +1,14 @@
+
+# Makes artifactory-remote the default registry and saves passing --registry parameter
+[registry]
+default = "artifactory-remote"
+
+[registries.artifactory-remote]
+index = "sparse+https://artifactory.ep.chehejia.com/artifactory/api/cargo/cargo-remote/index/"
+
+# Add these 2 sections for resolving dependencies from Artifactory
+[source.artifactory-remote]
+registry = "sparse+https://artifactory.ep.chehejia.com/artifactory/api/cargo/cargo-remote/index/"
+
+[source.crates-io]
+replace-with = "artifactory-remote"

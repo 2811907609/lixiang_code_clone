@@ -1,0 +1,45 @@
+# CodeDoggy 配置文件模板
+# 文件名: .codedoggy_config.yaml
+
+model : volcengine/deepseek-r1
+
+config_type: default                     # 配置文件类型
+
+# 基础审查配置
+review:
+  enabled: true                    # 是否启用代码审查
+  max_comments: 10                 # 最大评论数量
+  file_max_comment: 2               # 文件的最大评论数量
+
+# 忽略配置
+should_review:
+  patterns:
+    - .*\.go$
+    - .*\.py$
+    - .*\.java$
+    - .*\.c$
+    - .*\.sql$
+    - .*\.rs$
+    - .*\.tsx$
+    - .*\.jsx$
+    - .*\.vue$
+    - .*\.kt$
+    - .*\.scala$
+    - .*\.md$
+
+
+# 自定义规则
+# language 存在则为特定语言配置 不存在则所有语言生效
+custom_rules:
+    language: "go"
+    enabled: true
+    rules: "不需要检查日志相关内容"
+
+# 建议分数配置
+scoring:
+  enabled: true                        # 是否启用评分功能
+  score: 7                             # 评分过滤阈值
+
+auto_code_review_score:
+  enabled: true
+  score: 1

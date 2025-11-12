@@ -1,0 +1,65 @@
+
+# origin image is nvidia/cuda:12.5.1-devel-ubuntu22.04, use devel since runtime doesn't has cc,nvcc
+FROM artifactory.ep.chehejia.com/ep-docker/nvidia/cuda:12.5.1-cudnn-devel-ubuntu22.04
+
+LABEL org.opencontainers.image.authors="zhangxudong@lixiang.com"
+
+COPY deploy/ubuntu2204.sourcelist /etc/apt/sources.list
+COPY deploy/pip.conf /root/.pip/pip.conf
+
+# astral-sh/uv:0.7.8
+COPY --from=artifactory.ep.chehejia.com/ghcr.io/astral-sh/uv:0.7.8 /uv /uvx /bin/
+
+# rust tools
+COPY --from=artifactory.ep.chehejia.com/ep-docker/rust:1.86.0-bookworm /usr/local/cargo /usr/local/cargo
+COPY --from=artifactory.ep.chehejia.com/ep-docker/rust:1.86.0-bookworm /usr/local/rustup /usr/local/rustup
+
+# Set up environment variables for Rust
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+# set bash as default shell
+SHELL ["/bin/bash", "-c"]
+
+# Avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update \
+    && apt install -y --no-install-recommends tzdata locales less rsync wget curl lsof iproute2 \
+        git git-lfs openssh-server tmux neovim silversearcher-ag jq \
+    && apt-get clean \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && rm -rf /var/lib/apt/lists/* \
+    && locale-gen en_US.UTF-8 \
+    && uv python install 3.12
+
+# create virtual env and install vllm related packages
+RUN uv venv --seed -p 3.12 /lpai/venvs/vllm \
+    && export UV_PROJECT_ENVIRONMENT=/lpai/venvs/vllm \
+    && export VIRTUAL_ENV=/lpai/venvs/vllm \
+    && uv pip install -i https://artifactory.ep.chehejia.com/artifactory/api/pypi/pypi-remote/simple \
+        sentence-transformers==3.4.1 transformers==4.51.3 torch==2.7.0 vllm==0.9.1 \
+    && uv cache clean
+    # && uv pip install flashinfer-python==0.2.5 -i https://flashinfer.ai/whl/cu124/torch2.6/
+
+# let's build rust package first since it is not changes frequently
+COPY codebuddy/llminfer_rs /app/codebuddy/llminfer_rs
+RUN cd /app/codebuddy/llminfer_rs && uv add maturin && uv build --wheel  --no-build-isolation && rm -rf target
+
+COPY packages/commonlibs/pyproject.toml packages/commonlibs/README.md packages/commonlibs/uv.lock   /app/packages/commonlibs/
+COPY packages/datautils/pyproject.toml packages/datautils/README.md packages/datautils/uv.lock   /app/packages/datautils/
+COPY packages/repoutils/pyproject.toml packages/repoutils/README.md packages/repoutils/uv.lock   /app/packages/repoutils/
+COPY packages/sysutils/pyproject.toml packages/sysutils/README.md packages/sysutils/uv.lock   /app/packages/sysutils/
+COPY codebuddy/inference_server/pyproject.toml codebuddy/inference_server/README.md codebuddy/inference_server/uv.lock  /app/codebuddy/inference_server/
+
+ENV UV_PROJECT_ENVIRONMENT /lpai/venvs/vllm
+ENV VIRTUAL_ENV /lpai/venvs/vllm
+
+RUN cd /app/codebuddy/inference_server \
+    && uv sync --inexact \
+    && uv add ../llminfer_rs/dist/llminfer_rs-0.1.0-cp310-abi3-linux_x86_64.whl \
+    && uv cache clean
+
+ENV LD_LIBRARY_PATH /usr/local/cuda/compat

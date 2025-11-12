@@ -1,0 +1,43 @@
+
+
+FROM artifactory.ep.chehejia.com/docker/ubuntu:22.04
+
+LABEL org.opencontainers.image.authors="zhangxudong@lixiang.com"
+
+COPY data/data_scrap/deploy/ubuntu2204.sourcelist /etc/apt/sources.list
+
+# astral-sh/uv:0.7.8
+COPY --from=artifactory.ep.chehejia.com/ghcr.io/astral-sh/uv:0.7.8 /uv /uvx /bin/
+
+# set bash as default shell
+SHELL ["/bin/bash", "-c"]
+
+# Avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# disable https cert check since it will fail when ca-certificates is not installed
+RUN echo 'Acquire::https::Verify-Peer "false";' > /etc/apt/apt.conf.d/99verify-peer.conf \
+    && echo 'Acquire::https::Verify-Host "false";' > /etc/apt/apt.conf.d/99verify-host.conf \
+    && apt update \
+    && apt install -y --no-install-recommends tzdata locales ca-certificates openssh-client less rsync wget curl lsof git \
+    && apt-get clean \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && rm -rf /var/lib/apt/lists/* \
+    && locale-gen en_US.UTF-8 \
+    && uv python install 3.12
+
+COPY packages/sysutils/pyproject.toml packages/sysutils/README.md packages/sysutils/uv.lock   /app/packages/sysutils/
+COPY packages/repoutils/pyproject.toml packages/repoutils/README.md packages/repoutils/uv.lock   /app/packages/repoutils/
+COPY data/data_scrap/pyproject.toml data/data_scrap/README.md data/data_scrap/uv.lock  /app/data/data_scrap/
+
+RUN cd /app/data/data_scrap \
+    && uv sync --inexact
+# should add uv cache clean later to remove caches
+
+COPY . /app
+
+RUN cd /app/data/data_scrap/vendors/grimoirelab-perceval \
+    && uv pip install -i "https://artifactory.ep.chehejia.com/artifactory/api/pypi/pypi-remote/simple"  -e .
+
+WORKDIR /app/data/data_scrap

@@ -1,0 +1,137 @@
+
+- description: "from git@gitlab.chehejia.com:ep/ai/code-complete.git"
+  gerrit_cr: null
+  original_text: |
+    from collections import OrderedDict
+    from dataclasses import dataclass, field
+
+
+    @dataclass
+    class RequestInfo:
+        original_draft_tokens: list[int] = None
+
+
+    @dataclass
+    class RequestManager:
+        max_size: int = 1000
+        requests: OrderedDict[str, RequestInfo] = field(default_factory=OrderedDict)
+
+        def _add_request(self, request_id: str):
+            if len(self.requests) >= self.max_size:
+                self.requests.popitem(last=False)
+            req = RequestInfo()
+            self.requests[request_id] = req
+            return req
+
+        def _get_request(self, request_id: str):
+            return self.requests.get(request_id)
+
+        def _get_or_create_request(self, request_id: str):
+            if req := self.requests.get(request_id):
+                return req
+            else:
+                return self._add_request(request_id)
+
+        def _remove_request(self, request_id: str):
+            self.requests.pop(request_id, None)
+
+        def set_original_draft_tokens(self, request_id: str,
+                                      original_draft_tokens: list[int]):
+            if not request_id:
+                return
+            req = self._get_or_create_request(request_id)
+            req.original_draft_tokens = original_draft_tokens
+
+        def get_original_draft_tokens(self, request_id: str):
+            req = self._get_request(request_id)
+            if req:
+                return req.original_draft_tokens
+
+        def remove_request(self, request_id: str):
+            self._remove_request(request_id)
+  rag_content: ''
+  task: |
+    Please help to refactor the code to make it work with multiple threads/processes.
+
+- description: "from git@gitlab.chehejia.com:ep/ai/code-complete.git"
+  gerrit_cr: null
+  original_text: |
+    import asyncio
+    import threading
+
+
+    class HeartbeatMonitor:
+
+        def __init__(self):
+            self._stop_event = asyncio.Event()
+            self._monitor_task = None
+
+        async def start(self, interval):
+            if self._monitor_task is None:
+                self._interval = interval
+                self._monitor_task = asyncio.create_task(self._monitor())
+
+        async def stop(self):
+            if self._monitor_task is not None:
+                self._stop_event.set()
+                await self._monitor_task
+                self._monitor_task = None
+
+        async def heartbeat(self):
+            raise NotImplementedError("子类必须实现 heartbeat 方法")
+
+        async def notify(self):
+            raise NotImplementedError("子类必须实现 notify 方法")
+
+        async def _monitor(self):
+            while not self._stop_event.is_set():
+                try:
+                    print(f"当前线程ID: {threading.get_ident()}")
+                    if not await self.heartbeat():
+                        await self.notify()
+                except Exception as e:
+                    await self.notify()
+                    print(f"心跳检测时发生错误: {e}")
+                await asyncio.sleep(self._interval)
+
+  rag_content: |
+    <environment_details>
+    # VSCode Visible Files
+    ../sysutils/sysutils/heartbeat.py
+    ../../codebuddy/inference_server/inference_server/codebuddy/vllm.py
+
+    # VSCode Open Tabs
+    ../../codebuddy/inference_server/inference_server/codebuddy/basemodel.py
+    ../../codebuddy/inference_server/inference_server/codebuddy/vllm.py
+    ../sysutils/tests/test_heartbeat.py
+    ../../codebuddy/rag_ingest/src/main.py
+    ../../codebuddy/inference_server/main.py
+    ../../codebuddy/inference_server/inference_server/codebuddy/vllm.py
+    ../sysutils/sysutils/heartbeat.py
+    ../../codebuddy/inference_server/tests/ipython/test_instance.py
+    ../../codebuddy/inference_server/inference_server/backend/vllm/vllm.py
+    ../../codebuddy/inference_server/inference_server/codebuddy/basemodel.py
+    ../../codebuddy/inference_server/inference_server/backend/common/base_model.py
+    ../../codebuddy/inference_server/format.json
+
+    # Current Time
+    17/03/2025, 7:59:57 pm (Asia/Hong_Kong, UTC+8:00)
+
+    # Current Context Size (Tokens)
+    (Not available)
+
+    # Current Mode
+    code
+    </environment_details>
+
+  task: |
+    现在我已经看到了 HeartbeatMonitor 类的完整代码。我需要重构这个类，使得 heartbeat() 和 notify() 方法可以作为参数传入，而不是通过子类重写。
+
+    重构的思路：
+
+    修改 init 方法，接受 heartbeat_func 和 notify_func 作为可选参数
+    如果这些函数被提供，则使用它们；否则保持默认的 NotImplementedError 行为
+    确保 _monitor 方法仍然能正常工作
+    接下来，我需要查看测试用例，以便了解如何更新它们。
+
+    我将重构 HeartbeatMonitor 类，使 heartbeat() 和 notify() 方法可以作为参数传入。

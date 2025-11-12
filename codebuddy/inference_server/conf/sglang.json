@@ -1,0 +1,29 @@
+
+{
+  "instances": {
+    "test.opt125m-sglang": {
+      "model_type": "sglang",
+      "disable_register": true,
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/opt/opt-125m",
+      "model_labels": {
+        "size": "125M",
+        "inference_by": "sglang",
+        "device": "A100"
+      },
+      "model_params": {
+        "server_base_uri": "http://0.0.0.0:9130/v1",
+        "commands": ["python3", "-m", "http.server"]
+      },
+      "models": {
+        "default": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_threshold": 0.8,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    }
+  }
+}

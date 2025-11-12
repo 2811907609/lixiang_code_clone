@@ -1,0 +1,842 @@
+{
+  "instances": {
+    "multi_embeds": {
+      "embeddings": true,
+      "multiple_instances": ["bge-m3", "bge-reranker-v2-m3", "bge-code-v1", "qwen3-embedding-0.6B"]
+    },
+    "multi_embeds_2": {
+      "embeddings": true,
+      "multiple_instances": ["qwen3-rerank-4B"]
+    },
+    "qwen3-embedding-0.6B": {
+      "embeddings": true,
+      "model_type": "ST",
+      "model_params": {
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/embed/qwen__qwen3-embedding-0_6b/25-06-07-0127/"
+      }
+    },
+   "qwen3-embedding-4B": {
+      "embeddings": true,
+      "model_type": "ST",
+      "model_params": {
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/embed/qwen__qwen3-embedding-4b/25-06-07-0128"
+      }
+    },
+    "qwen3-rerank-4B": {
+      "embeddings": true,
+      "model_type": "st_reranker",
+      "model_params": {
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/embed/qwen__qwen3-reranker-4b/25-06-06-0928"
+      }
+    },
+    "bge-small-zh-v1.5": {
+      "embeddings": true,
+      "model_type": "ST",
+      "model_params": {
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/embeddings/bge-small-zh-v1.5"
+      }
+    },
+    "bge-m3": {
+      "embeddings": true,
+      "model_type": "ST",
+      "model_params": {
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/embeddings/bge-m3"
+      }
+    },
+    "bge-reranker-v2-m3": {
+      "embeddings": true,
+      "model_type": "st_reranker",
+      "model_params": {
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/embeddings/bge-reranker-v2-m3"
+      }
+    },
+    "bge-code-v1": {
+      "embeddings": true,
+      "model_type": "ST",
+      "model_params": {
+        "model_path": "/lpai/volumes/zxd-code-complete/data/models/embeddings/baai__bge-code-v1/25-05-20-0247"
+      }
+    },
+    "prod.qwen25-coder-7b-awq": {
+      "model_type": "qwen_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/Qwen2.5-Coder-7B-Instruct-AWQ/",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "7B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "enable_prefix_caching": true,
+        "gpu_memory_utilization": 0.94,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 3000
+      },
+      "models": {
+        "qwen25-coder-ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.665,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "qwen25-coder-non_ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.665,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.qwen25-coder-14b-ft": {
+      "model_type": "qwen_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/qwen_coder_2_5/qwen_coder_2_5_14b_awq/",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "14B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enable_prefix_caching": true,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill": true,
+        "num_speculative_tokens": 8,
+        "max_model_len": 3500
+      },
+      "models": {
+        "qwen25-coder-14b-ft-ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 600,
+            "prefix_limit": 3200,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.609,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "qwen25-coder-14b-ft-ep-6k": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 4000,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.609,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "qwen25-coder-14b-ft-non_ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 600,
+            "prefix_limit": 3200,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.609,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "qwen25-coder-14b-ft-non_ep-6k": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 4000,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.609,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.qwen25-0219": {
+      "model_type": "qwen_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/multitask_best_ft/202502190241/best_model/full/",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "14B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enable_prefix_caching": true,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill": true,
+        "num_speculative_tokens": 8,
+        "max_model_len": 3500
+      },
+      "models": {
+        "qwen25-0219-ft-ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 600,
+            "prefix_limit": 3200,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6856,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "qwen25-0219-ft-ep-6k": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 4000,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6856,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "qwen25-0219-ft-non_ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 600,
+            "prefix_limit": 3200,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6856,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "qwen25-0219-ft-non_ep-6k": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 4000,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6856,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-r1-qwen25-14b": {
+      "model_type": "qwen_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek/deepseek-r1-distill-qwen-14b-awq/",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "14B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enable_prefix_caching": true,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill": true,
+        "num_speculative_tokens": 8,
+        "max_model_len": 20000
+      },
+      "models": {
+        "dp-r1-qwen25-14b-ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 600,
+            "prefix_limit": 3200,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.609,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-r1-qwen25-14b-non_ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 600,
+            "prefix_limit": 3200,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.510,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.qwen3coder_30a3": {
+      "model_type": "qwen3coder",
+      "model_path.awq": "/lpai/volumes/zxd-code-complete/data/models/qwen/qwen3-coder-30b-a3b-instruct-awq-4bit",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/qwen/qwen__qwen3-coder-30b-a3b-instruct/25-08-01-0153",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "qwen3coder-ep": {
+          "params": {
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "top_k": 20,
+            "repetition_penalty": 1.05,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.9933,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "qwen3coder-non_ep": {
+          "params": {
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "top_k": 20,
+            "repetition_penalty": 1.05,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.9933,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-ft-20250909": {
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/multitask_best_ft/202509090055/best_model/full",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "env": {
+        "VLLM_MLA_DISABLE": "1"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "_enable_logprobs": true,
+        "enable_prefix_caching": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-v2lite-ft-ep-20250909": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.7141,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-ft-non_ep-20250909": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.7141,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-ft-20250815": {
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/multitask_best_ft/202508150233/best_model/full",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "env": {
+        "VLLM_MLA_DISABLE": "1"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "_enable_logprobs": true,
+        "enable_prefix_caching": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-v2lite-ft-ep-20250815": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.7313,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-ft-non_ep-20250815": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.7313,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-instruct": {
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek/DeepSeek-Coder-V2-Lite-Instruct-AWQ",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-v2lite-inst-ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.7732,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-inst-non_ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.7732,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-base": {
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek/deepseek-coder-v2-lite-base",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-v2lite-base-ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6776,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-base-non_ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6776,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-coder-v2-16B": {
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek/deepseek-ai__deepseek-coder-v2-lite-instruct-24-06-17-1123",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-coder-v2-16b-ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_threshold": 0.75,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-coder-v2-16b-ep-long-rag": {
+          "params": {
+            "temperature": 0,
+            "rag_min_length": 800,
+            "logprobs": 5,
+            "topk_mean_threshold": 0.75,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-coder-v2-16b-non_ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "topk_mean_threshold": 0.75,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-coder-v2-16b-chat": {
+          "params": {
+            "repetition_penalty": 1.1,
+            "temperature": 0.7
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-ft-ep-auto": {
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/dpv2-ft-ep-auto/",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enable_prefix_caching": true,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-v2lite-ft-ep-auto": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.665,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-ft-ep-auto-6k": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.665,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-ft-full-auto": {
+      "desc": "for non-ep auto upgrade",
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/ep-models/dpv2-ft-full-auto/",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enable_prefix_caching": false,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 3000
+      },
+      "models": {
+        "dp-v2lite-ft-non_ep-auto-6k": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 4000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.665,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-ft-chip": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 4000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.5,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-ft-hlp": {
+      "desc": "hlp verify",
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/lpai_chain/full/full_202507141136",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enable_prefix_caching": false,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-v2lite-ft-hlp-ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6732,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-ft-hlp-non_ep": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6732,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-ft-full-0603": {
+      "desc": "ft 0603",
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/lpai_chain/full/full_202506030255",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enable_prefix_caching": false,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-v2lite-ft-non_ep-0603": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.6715,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-ft-chip-0603": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.5,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-v2lite-ft-full-20250331": {
+      "desc": "for non-ep",
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/lpai_chain/full/full_202503310118",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A100"
+      },
+      "env": {
+        "VLLM_MLA_DISABLE": "1"
+      },
+      "model_params": {
+        "gpu_memory_utilization": 0.94,
+        "enable_prefix_caching": true,
+        "_enable_logprobs": true,
+        "_ngram_spec_decoding": true,
+        "enable_chunked_prefill.disable": true,
+        "tensor_parallel_size": 1,
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-v2lite-ft-ep-20250331-6k": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.676,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-chip-20250331": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.676,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-ft-non_ep-20250331-6k": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 1200,
+            "prefix_limit": 8000,
+            "max_tokens": 45,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.676,
+            "topk_mean_active_ratio": 1
+          }
+        },
+        "dp-v2lite-ft-non_ep-20250331": {
+          "params": {
+            "temperature": 0,
+            "logprobs": 5,
+            "rag_min_length": 600,
+            "prefix_limit": 3200,
+            "topk_mean_token_num": 2,
+            "topk_mean_threshold": 0.676,
+            "topk_mean_active_ratio": 1
+          }
+        }
+      }
+    },
+    "prod.dp-coder-v2-16B-awq": {
+      "model_type": "deepseek_coder",
+      "model_path": "/lpai/volumes/zxd-code-complete/data/models/deepseek/DeepSeek-Coder-V2-Lite-Instruct-AWQ",
+      "lpai_endpoint": "lpai-inference-guan.inner.chj.cloud",
+      "model_labels": {
+        "size": "16B",
+        "inference_by": "vllm",
+        "device": "A10"
+      },
+      "model_params": {
+        "enforce_eager.disable": true,
+        "quantization": "awq",
+        "max_model_len": 4000
+      },
+      "models": {
+        "dp-coder-v2-16b-awq": {
+          "params": {
+            "temperature": 0
+          }
+        },
+        "dp-coder-v2-16b-chat-awq": {
+          "params": {
+            "repetition_penalty": 1.1,
+            "temperature": 0.7
+          }
+        }
+      }
+    }
+  }
+}

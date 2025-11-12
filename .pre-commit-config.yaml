@@ -1,0 +1,78 @@
+
+# default is pre-commit, add commit-msg to support conventional commit messages
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+repos:
+  - repo: local
+    hooks:
+      - id: low-case-only
+        name: Check for lowercase only
+        entry: filenames must be lower-case or lower_case only
+        language: fail
+        files: '[^a-z0-9._/-]'
+        exclude: |
+          (?x)^(
+            .*Cargo.*|
+            .*Dockerfile.*|
+            .git/COMMIT_.*|
+            .*README.*
+          )$
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.35.1
+    hooks:
+      - id: typos
+        # args: [--write-changes, --force-exclude]
+        args: [--force-exclude]
+        exclude: |
+          (?x)^(
+            .*get-pip.py.*|
+            .*testcases.*yaml|
+            .*data\.json
+          )$
+
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        stages: [pre-commit]
+      - id: end-of-file-fixer
+        stages: [pre-commit]
+      - id: check-yaml
+        stages: [pre-commit]
+        exclude: |
+          (?x)^(
+            .*testcases.*yaml|
+            .*_grep.yaml
+          )$
+      - id: check-json
+        stages: [pre-commit]
+      - id: check-toml
+        stages: [pre-commit]
+      - id: check-merge-conflict
+        stages: [pre-commit]
+      - id: check-case-conflict
+        stages: [pre-commit]
+      - id: detect-private-key
+        stages: [pre-commit]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.7
+    hooks:
+      - id: ruff
+        types_or: [python, pyi, jupyter]
+        exclude: |
+          (?x)^(
+            dockerfiles.*|
+            codebuddy/ai_agents/ai_agents/modules/codedoggy/utils/diff.py
+          )$
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [--force-scope, config, chore, ci, docs, feat, fix, refactor, perf, style, test] # optional: list of Conventional Commits types to allow e.g. [feat, fix, ci, chore, test]

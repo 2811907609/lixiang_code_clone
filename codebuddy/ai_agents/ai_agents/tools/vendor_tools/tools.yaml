@@ -1,0 +1,12 @@
+
+
+download_dir: '$HOME/.cache/ept/tools'
+download_url: 'https://s3.ep.chehejia.com/ep-zadig-prod/frontend/packages/tools/${name}/${version}/${name}-${os}-${arch}'
+
+
+tools:
+  - name: rg
+    download_version: '14.1.1'
+    min_version: '13.0.0'
+    version_args: "-V"
+    version_reg_pattern: 'ripgrep\s(\d+\.\d+\.\d+)'

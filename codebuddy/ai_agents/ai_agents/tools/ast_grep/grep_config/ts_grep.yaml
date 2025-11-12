@@ -1,0 +1,89 @@
+id: func-type1 # function yourFunctionName(param1, param2): ReturnType { ... }
+language: typescript
+rule:
+  kind: function_declaration
+  regex: \bfunction\s+{WORDS}\s*\(([^)]*)\)\s*(\:\s*[^{]+)?\s*\{[^}]*\}
+---
+id: func-type3 # const yourFunctionName = (param1: type1, param2: type2): ReturnType => expression;
+language: typescript
+rule:
+  kind: lexical_declaration
+  regex: const\s+{WORDS}\s*=\s*\(([^)]*)\)\s*:\s*(\w+)\s*=>\s*([^;]+)
+---
+id: func-type4 # const funcName = (param1: type1, param2: type2) => { ... }
+language: typescript
+rule:
+  kind: lexical_declaration
+  regex: \bconst\s+({WORDS})\s*=\s*\(([^:)]+):\s*([^)]+)\)\s*=>\s*\{[^}]*\}
+---
+id: func-type5 # export const funcName = (param1: type1, param2: type2) => { ... }
+language: typescript
+rule:
+  kind: export_statement
+  regex: (?:export\s+)?const\s+({WORDS})\s*=\s*\(([^:)]+):\s*([^)]+)\)\s*=>\s*\{[^}]*\}
+---
+id: func-type6 # const funcName = (param1, param2): ReturnType => { ... }
+language: typescript
+rule:
+  kind: lexical_declaration
+  regex: \bconst\s+({WORDS})\s*=\s*(?:function\s*)?\(([^)]*)\)(?:\s*:\s*([^{=>]*))?\s*(?:=>|\{)[^}]*\}
+---
+id: export interface
+language: ts
+rule:
+  kind: export_statement
+  regex: export\s+interface\s+{WORDS}
+---
+id: interface
+language: ts
+rule:
+  kind: interface_declaration
+  regex: interface\s+{WORDS}
+  not:
+    inside:
+      kind: export_statement
+---
+id: export type
+language: ts
+rule:
+  kind: export_statement
+  regex: export\s+type\s+{WORDS}
+---
+id: type
+language: ts
+rule:
+  kind: type_alias_declaration
+  regex: type\s+{WORDS}
+  not:
+    inside:
+      kind: export_statement
+---
+id: class
+language: ts
+rule:
+  kind: class_declaration
+  regex: class\s+{WORDS}
+  not:
+    inside:
+      kind: export_statement
+---
+id: export class
+language: ts
+rule:
+  kind: export_statement
+  regex: export\s+class\s+{WORDS}
+---
+id: enum
+language: ts
+rule:
+  kind: enum_declaration
+  regex: enum\s+{WORDS}
+  not:
+    inside:
+      kind: export_statement
+---
+id: export enum
+language: ts
+rule:
+  kind: export_statement
+  regex: export\s+enum\s+{WORDS}

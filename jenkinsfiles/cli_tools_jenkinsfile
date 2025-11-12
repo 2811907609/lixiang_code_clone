@@ -1,0 +1,45 @@
+
+// 这个jenkinsfile 是用来部署LLM 模型的
+// jenkins job 地址
+// https://ci.ep.chehejia.com/job/Main/job/EP-Coding-Copilot/job/EP-code-repos-llm-deploy-pipeline/
+
+pipeline {
+    agent {
+      kubernetes {
+        defaultContainer 'ep-copilot-deploy'
+        yaml '''
+kind: Pod
+spec:
+  namespace: jenkins-prod
+  imagePullSecrets: ['ep-rt-svc-cred']
+  containers:
+  - name: ep-copilot-deploy
+    image: artifactory.ep.chehejia.com/ep-docker-release-local/copilot-llm-cli-tools:v1
+    imagePullPolicy: IfNotPresent
+    command:
+    - cat
+    tty: true
+'''
+      }
+    }
+
+    environment {
+      LPAI_TOKEN = credentials('lpai-access-token-pa-zr')
+    }
+
+    stages {
+        stage('wait new version of model to be generated') {
+            steps {
+                echo 'will wait 1 minutes...'
+                sh 'sleep 60'
+            }
+        }
+        stage('deploy new model') {
+            steps {
+                echo 'deploying...'
+                sh 'python pkg/utils/lpai.py update_inference_to_latest_model --ns=sc-ep --inf_name=ct2-codellama7b-ep ---modelset_name=codellama-ep-priv-code-finetuned --restart=true'
+                echo 'deploy done'
+            }
+        }
+    }
+}

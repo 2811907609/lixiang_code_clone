@@ -1,0 +1,8 @@
+
+# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+deb https://artifactory.ep.chehejia.com/artifactory/ubuntu-remote/ jammy main restricted universe multiverse
+deb https://artifactory.ep.chehejia.com/artifactory/ubuntu-remote/ jammy-updates main restricted universe multiverse
+deb https://artifactory.ep.chehejia.com/artifactory/ubuntu-remote/ jammy-backports main restricted universe multiverse
+deb https://artifactory.ep.chehejia.com/artifactory/ubuntu-remote/ jammy-security main restricted universe multiverse
+# 预发布软件源，不建议启用
+deb https://artifactory.ep.chehejia.com/artifactory/ubuntu-remote/ jammy-proposed main restricted universe multiverse

@@ -1,0 +1,387 @@
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```python
+      def split_rag_prefix_lines(lang: str, prefix: str):
+          lines = prefix.split('\n')
+          if not lang:
+              return [], lines
+          comment_mark = get_language_comment_mark(lang)
+          if not comment_mark:
+              return [], lines
+          i = 0
+          while i < len(lines) and lines[i].startswith(comment_mark):
+              i += 1
+          return lines[:i], lines[i:]
+
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```python
+      def load_offline_cases(file):
+          '''输入使用yaml格式可读性比json好多了(有多行文本)'''
+          with open(file, 'r') as f:
+              for data in yaml.safe_load_all(f):
+                  if data and data.get('messages'):
+                      yield TestCase(messages=data['messages'])
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```python
+      def trim_last_word(text, max_tokens, output_len):
+          if feature_gate.benchmark:
+              return text
+          if output_len + 4 < max_tokens:
+              return text
+          # avoid trim if there is only one line
+          if '\n' not in text:
+              return text
+          match = re.search(r'\w*$', text)
+          if match:
+              print('match', match.start())
+              return text[:match.start()]
+          else:
+              return text
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```go
+      func toGinHandler(h Handler, opt *RouteOpt) gin.HandlerFunc {
+        if opt == nil {
+          o := defaultRouteOpt
+          opt = &o
+        }
+        return func(c *gin.Context) {
+          if opt.Stream {
+            SetStreamHeader(c)
+          }
+          result, err := h(c)
+          if err != nil {
+            statusCode := 500
+            if code, ok := result.(int); ok && code >= 400 && code < 600 {
+              statusCode = code
+            }
+            c.JSON(statusCode, gin.H{"errmsg": err.Error()})
+            return
+          }
+          if !opt.Stream && !opt.Raw {
+            c.JSON(http.StatusOK, result)
+          }
+        }
+      }
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```go
+      type Actor interface {
+        Enabled() bool
+        EventTypes() []string
+        Dependencies() *utils.Set[string]
+        Act(ctx *Context, result *CheckResult) error // todo, 把 result 放到 context 里面
+      }
+
+      func (c *LiCI) run(actor Actor, ctx *Context, result *CheckResult) error {
+        if !actor.Enabled() {
+          return nil
+        }
+
+        supportedTypes := actor.EventTypes()
+        if !l.Contains(supportedTypes, ctx.PatchInfo.EventType, nil) {
+          return nil
+        }
+
+        depends := actor.Dependencies()
+        if depends != nil && depends.Has("CommitType") {
+          if !c.AssureCommitType(ctx, result) {
+            return nil
+          }
+        }
+
+        if err := actor.Act(ctx, result); err != nil {
+          return err
+        }
+        return nil
+      }
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```vue
+      <template>
+        <div style="display: inline-block; cursor: pointer">
+          <el-icon v-if="modelValue" @click="closeCollpase" :size="16"><CaretBottom /></el-icon>
+          <el-icon  v-else @click="openCollpase" :size="16"><CaretRight /></el-icon>
+        </div>
+      </template>
+
+      <script lang="ts" setup>
+      import _ from 'lodash'
+      import { defineProps, defineEmits, PropType } from 'vue'
+
+      const props = defineProps({
+        modelValue: {
+          type: Boolean as PropType<boolean>,
+          default: false,
+        },
+      })
+
+      const emit = defineEmits<{
+        (e: 'changeCollapse', isCollapse: boolean): void
+      }>()
+
+      const openCollpase = () => {
+        emit('changeCollapse', true)
+      }
+
+      const closeCollpase = () => {
+        emit('changeCollapse', false)
+      }
+      </script>
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```ts
+      function auto_width(ws:any, data:any){
+          /*set worksheet max width per col*/
+          const colWidth = data.map((row:any) => row.map((val:any) => {
+              /*if null/undefined*/
+              if (val == null) {
+                  return {'wch': 10};
+              }
+              /*if chinese*/
+              else if (val.toString().charCodeAt(0) > 255) {
+                  return {'wch': val.toString().length * 2};
+              } else {
+                  return {'wch': val.toString().length};
+              }
+          }))
+          /*start in the first row*/
+          let result = colWidth[0];
+          for (let i = 1; i < colWidth.length; i++) {
+              for (let j = 0; j < colWidth[i].length; j++) {
+                  if (result[j]['wch'] < colWidth[i][j]['wch']) {
+                      result[j]['wch'] = colWidth[i][j]['wch'];
+                  }
+              }
+          }
+          ws['!cols'] = result;
+      }
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```react
+      export const DInput = (props: any) => {
+        const { _compType, useForm, extraCompMap, innerRef, ...restProps } = props
+
+        if (_compType === 'datetime') {
+          restProps.type = 'dateTime'
+        }
+
+        const m = useForm ? formComponentMap: componentMap
+        let Component
+        // 优先从用户传过来的component map里匹配组件
+        if (extraCompMap && extraCompMap[_compType]) {
+          Component = extraCompMap[_compType]
+        }
+        if (!Component) {
+          Component = m[_compType]
+        }
+        if (!Component) {
+          return null
+        }
+
+        return <Component {...restProps} ref={innerRef} />
+      }
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```ts
+      /* eslint-disable */
+      export const XHRHook = (cb: (xhr: XMLHttpRequest) => void) => {
+        const oldXHRSend = XMLHttpRequest.prototype.send
+        XMLHttpRequest.prototype.send = function (body?: Document | XMLHttpRequestBodyInit | null) {
+          this.addEventListener("readystatechange", (event) => {
+            const xhr = event?.currentTarget as XMLHttpRequest
+            if (xhr?.readyState === XMLHttpRequest.DONE) {
+              const status = xhr?.status
+              if (status === 0 || status >= 200 && status < 400) {
+                // The request has been completed successfully
+                cb(xhr)
+              }
+            }
+          })
+          return oldXHRSend.apply(this, arguments)
+        }
+      }
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```go
+      func FindOne[T any](db *gorm.DB, conds ...any) (*T, error) {
+        var resource T
+        if err := db.First(&resource, conds...).Error; err != nil {
+          if err == gorm.ErrRecordNotFound {
+            return nil, nil
+          }
+          return nil, err
+        }
+        return &resource, nil
+      }
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1
+
+---
+messages:
+  - role: user
+    content: |
+      请解释下面的代码，请注意一定要用中文回答.
+
+      ```go
+      func constructFilter(h *QueryHandler, query *gorm.DB, filter *Filter) *gorm.DB {
+        if IsComposedOp(filter.Op) {
+          if len(filter.Filters) == 0 {
+            return query
+          }
+          q := constructFilter(h, query, filter.Filters[0])
+          if len(filter.Filters) == 1 {
+            return q
+          }
+          for _, f := range filter.Filters[1:] {
+            if filter.Op == AND {
+              q = q.Where(constructFilter(h, query, f))
+            } else {
+              q = q.Or(constructFilter(h, query, f))
+            }
+          }
+          return q
+        }
+        if h.FieldValueRewriter != nil {
+          // 如果rewrite过就不继续向下走
+          if q, rewritted := h.FieldValueRewriter(filter, query); rewritted {
+            return q
+          }
+        }
+
+        field := filter.Field
+        if h.FieldRewriter != nil {
+          field = h.FieldRewriter(filter.Field)
+        }
+        switch filter.Op {
+        case EQ, GT, GTE, LT, LTE, NE, LIKE, IN:
+          stmt := fmt.Sprintf("%s %s ?", field, string(filter.Op))
+          var v any = filter.Value //nolint:stylecheck
+          for _, hook := range h.FieldValueHooks {
+            v = hook(filter.Field, filter.Op, v)
+          }
+          return query.Where(stmt, v)
+        case RANGE:
+          v := filter.Value
+          vArray, ok := v.([]any)
+          if ok && len(vArray) == 2 {
+            v1 := vArray[0]
+            v2 := vArray[1]
+            if v1 != nil && v2 != nil {
+              return query.Where("? >= ? and ? <= ?", field, v1, field, v2)
+            }
+            if v2 != nil {
+              return query.Where("? <= ?", field, v2)
+            }
+            if v1 != nil {
+              return query.Where("? >= ? ", field, v1)
+            }
+          }
+        case ISNULL, ISNOTNULL:
+          return query.Where(field + " " + string(filter.Op))
+        }
+        return query
+      }
+      ```
+temperature: 0.1
+presence_penalty: 0
+frequency_penalty: 0
+top_p: 1

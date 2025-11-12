@@ -1,0 +1,43 @@
+
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+line-length = 80
+target-version = "py310"
+
+[lint]
+# Enable flake8-bugbear (`B`) rules.
+select = ["E4", "E7", "E9", "F", "B", "I"]
+
+# "I" is import sorting related
+# extend-select = ["I"]
+
+ignore = ["F704"]
+
+# Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
+
+# Ignore `E402` (import violations) in all `__init__.py` files, and in select subdirectories.
+# F401: imported but not used
+[lint.per-file-ignores]
+"__init__.py" = ["E402", "F401"]
+"*_ipython.py" = ["F401"]
+"**/{tests,docs,tools}/*" = ["E402"]
+
+[format]
+# Use single quotes for non-triple-quoted strings.
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[lint.pycodestyle]
+max-line-length = 80
+
+[lint.pydocstyle]
+convention = "google"

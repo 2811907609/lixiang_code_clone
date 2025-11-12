@@ -1,0 +1,16 @@
+
+{# 设置变量默认值 #}
+{% set agent_type = agent_type or '编程' %}
+{% set task_complexity = task_complexity or '标准' %}
+
+你是一个 {{agent_type}} 专家，请帮助用户完成他的任务。
+
+{# 安全地包含文件，添加错误处理 #}
+{% include 'common_instructions.md' ignore missing with context %}
+
+{% include 'specific_guidelines.md' ignore missing with context %}
+
+{# 可选内容 #}
+{% if include_error_handling %}
+{% include 'error_handling.md' ignore missing %}
+{% endif %}

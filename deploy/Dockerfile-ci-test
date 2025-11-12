@@ -1,0 +1,47 @@
+
+FROM artifactory.ep.chehejia.com/docker-remote/alpine:3.22.0 as uv_binary
+
+# ADD https://github.com/astral-sh/uv/releases/download/0.7.21/uv-x86_64-unknown-linux-gnu.tar.gz /tmp/uv.tar.gz
+ADD https://artifactory.ep.chehejia.com/artifactory/generic-github-releases-remote/astral-sh/uv/releases/download/0.7.21/uv-x86_64-unknown-linux-gnu.tar.gz /tmp/uv.tar.gz
+
+RUN tar -xz -C /tmp/ -f /tmp/uv.tar.gz && rm /tmp/uv.tar.gz
+
+
+FROM artifactory.ep.chehejia.com/ep-docker/ubuntu:22.04 as builder
+
+LABEL org.opencontainers.image.authors="zhangxudong@lixiang.com"
+
+# Avoid warnings by switching to noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+
+# use tuna since artifactory force https and need ca-certificates
+COPY deploy/ubuntu2204.sourcelist.tuna /etc/apt/sources.list
+
+# astral-sh/uv:0.7.8
+# COPY --from=artifactory.ep.chehejia.com/ghcr.io/astral-sh/uv:0.7.8 /uv /uvx /bin/
+COPY --from=uv_binary /tmp/uv-x86_64-unknown-linux-gnu/uv /tmp/uv-x86_64-unknown-linux-gnu/uvx /bin/
+
+SHELL ["/bin/bash", "-c"]
+
+RUN uv python install 3.10 && uv python install 3.12
+
+# sysutils depends on tzdata
+RUN apt update \
+    && apt install -y --no-install-recommends ca-certificates tzdata \
+    && apt-get clean \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG PACKAGE_PATH=packages/sysutils
+
+COPY ${PACKAGE_PATH}/pyproject.toml ${PACKAGE_PATH}/README.md ${PACKAGE_PATH}/uv.lock /app/${PACKAGE_PATH}/
+
+RUN cd /app/${PACKAGE_PATH} && uv sync --inexact \
+    && uv cache clean
+
+COPY . /app
+
+WORKDIR /app/${PACKAGE_PATH}
+
+RUN uv run coverage run -m pytest -s tests/ && uv run coverage report -m

@@ -1,0 +1,79 @@
+你是一名代码分析助手。请帮我从以下代码文件片段中提取重要的概要信息。提取的信息可能有下面这些：
+
+1. 包名（如适用）
+2. 如果有大段的注释来介绍本文件/包的作用或者用途，请总结精简成几句话
+2. import/include 的包、库、文件等
+3. class, type, struct等的定义
+需要把所有的方法信息也都包含。对于go，直接包含整个struct或者interface定义就行。
+4. 常量定义及其注释（如有）
+5. 函数和方法定义，**不要包含body之类的详细信息**
+6. 任何其他重要的类似定义
+
+### go语言期望结果示例
+package complexquery
+
+import (
+	"fmt"
+	"gorm.io/gorm"
+)
+
+// allow to rewrite field name (like customfield_10001 = 100 -> cfv.customfield = 10001 and value = 100)
+type fieldRewriter func(field string) string
+
+type QueryHandler struct {
+	FieldValueHooks    []fieldValueHook
+	FieldRewriter      fieldRewriter
+	FieldValueRewriter fieldValueRewriter
+}
+
+// default handler that handle common cases
+var DefaultHandler = &QueryHandler{
+	FieldValueHooks: []fieldValueHook{trimFieldValue},
+}
+
+func (qh *QueryHandler) BuildQuery(db *gorm.DB, search *Search) *gorm.DB
+func constructFilters(h *QueryHandler, query *gorm.DB, filters []*Filter) *gorm.DB
+func constructFilter(h *QueryHandler, query *gorm.DB, filter *Filter) *gorm.DB
+func trimFieldValue(field string, op Op, val any) any
+
+### python语言期望结果示例
+import hashlib
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+class RecordPayload(dict):
+    def content(self):
+
+@dataclass
+class Record:
+    id: str = None
+    namespace: str = None
+    content_md5: str = None
+    payload: RecordPayload = None
+    # distance is the vector distance of query
+    distance: float = None
+
+    def content(self):
+    def update_md5(self):
+
+class VectorStoreBase(ABC):
+    @abstractmethod
+    def insert(self, name, vectors, payloads=None, ids=None):
+
+    @abstractmethod
+    def search(self, namespace: str, query_vector, limit: int = 10):
+
+
+### 注意
+1. 代码内容有可能是完整的，也有可能是部分片段代码，对于部分代码片段，请不要推测里面未包含的内容
+2. 回答尽量简洁，结构清晰
+3. 如果某部分没有，就直接省略掉就行，不要写暂无XXX
+
+### 代码内容
+语言: {{ lang }}
+路径: {{ path }}
+代码内容:
+```
+{{ code }}
+```

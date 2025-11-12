@@ -1,0 +1,435 @@
+[
+  {
+    "case_id": 1,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/os/harley/nuttx-kernel",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/os/harley/nuttx-kernel/+/1433260",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "0b9d136c8f54ec4a6e1fe8bda1199766a2d9baf2",
+      "target_commit": "dc12471c58787cca85695ba57645ff773cf74ed8",
+      "event_id": "1433260",
+      "change_context": {
+        "expect_suggestions": {
+          "sched/task/task_init.c": [
+            {
+              "resolveCode": "else if (tcb->cmn.share_stack_info != NULL && tcb->cmn.share_stack_info->temp_stack != NULL)\n    {\n      /* Copy thread local storage to shared stack */\n      memcpy(tcb->cmn.share_stack_info->temp_stack->temp_tls_buffer,\n             tcb->cmn.stack_alloc_ptr, CONFIG_SHARE_TASK_TEMP_TLS_BUFFER_SIZE);\n    }",
+              "suggestionContent": "在执行 `memcpy` 操作时，代码直接访问了 `tcb->cmn.share_stack_info->temp_stack`。虽然已经检查了 `share_stack_info` 不为NULL，但并未检查其成员 `temp_stack` 指针是否为NULL。如果 `temp_stack` 未被正确初始化，这里会发生空指针解引用，导致程序崩溃。为了增强代码的健壮性，必须在解引用之前增加对 `temp_stack` 指针的空值检查。",
+              "suggestionLine": 183
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 2,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/ssdk/linux-lts",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/ssdk/linux-lts/+/1431900",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "313d0aafbaf7296ea8dd2adc119f2348f0659699",
+      "target_commit": "00d467bd3f1b304b6281f1c0145ca86c52c0339d",
+      "event_id": "1431900",
+      "change_context": {
+        "expect_suggestions": {
+          "drivers/watchdog/mach_wdt.c": [
+            {
+              "resolveCode": "struct mach_wdt *mach_wdt_kernel_get(const char *name)\n{\n    struct mach_wdt *wdt_found = NULL;\n    struct mach_wdt *mach_wdt;\n\n    if (!name)\n        return NULL;\n\n    mutex_lock(&kernel_wdt_mutex);\n\n    list_for_each_entry(mach_wdt, &kernel_wdt_list, kwdt_node) {\n        if (!mach_wdt->in_kernel)\n            continue;\n        if (strncmp(mach_wdt->name, name, KWDT_NAME_LEN) != 0)\n            continue;\n\n        /* Found a matching device, try to claim it */\n        if (atomic_cmpxchg(&mach_wdt->ref_count, 0, 1) == 0) {\n            wdt_found = mach_wdt;\n        }\n        /*\n         * Break after finding the first device, regardless of\n         * whether it was successfully claimed. It is assumed\n         * device names are unique.\n         */\n        break;\n    }\n\n    mutex_unlock(&kernel_wdt_mutex);\n    return wdt_found;\n}",
+              "suggestionContent": "在 list_for_each_entry 循环中，当 atomic_cmpxchg 获取设备锁失败时，代码将循环变量 mach_wdt 设置为 NULL，然后执行 break。list_for_each_entry 宏在下一次迭代的内部实现中会尝试访问 mach_wdt 的成员，此时 mach_wdt 为 NULL，这将导致空指针解引用，从而引发内核崩溃。此外，即使没有崩溃，获取锁失败后直接退出循环也是不正确的，应该允许继续查找其他可能的匹配项。",
+              "suggestionLine": 447
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 3,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/vcp/vbs/evbs",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/vcp/vbs/evbs/+/1431930",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "f5444e93b9f179ea4096599e8a4c366c0aea6348",
+      "target_commit": "79cc3cfb1c19c1655b181b8b68310e1781d968c6",
+      "event_id": "1431930",
+      "change_context": {
+        "expect_suggestions": {
+          "src/cpp/rtps/reader/StatelessReader.cpp": [
+            {
+              "resolveCode": "if ((!change->isPDPRecived) || (this->getGuid().entityId == ENTITYID_SPDP_BUILTIN_RTPSParticipant_READER) ||\n         (listener && listener->isReconstructMsg(this, change))) {",
+              "suggestionContent": "代码中使用了未定义的常量 ENTITYID_P2P_BUILTIN_PARTICIPANT_STATELESS_READER，这将导致编译失败。原始代码中使用的常量是 ENTITYID_SPDP_BUILTIN_RTPSParticipant_READER，它在代码库的其他部分被广泛使用。如果这是一个预期的变更，请确保在相关的头文件中定义了新的常量。如果这是一个拼写错误，请恢复使用原始的、已定义的常量。",
+              "suggestionLine": 304
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 4,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/vcp/vbs/utils",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/vcp/vbs/utils/+/1430817",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "790458898388fc2c8f0d2013bfff3c63ebc8b00b",
+      "target_commit": "67ca856035f052c87eb8d5b416baf1449efdc93d",
+      "event_id": "1430817",
+      "change_context": {
+        "expect_suggestions": {
+          "src/deps/dynamic-types/DynamicDataMemPool.cpp": [
+            {
+              "resolveCode": "  } else {\n        // 解链\n        if (chunk == tail_) {\n            tail_ = chunk->prev_chunk;\n        }\n        if (chunk->prev_chunk) {\n            chunk->prev_chunk->next_chunk = chunk->next_chunk;\n        }\n        if (chunk->next_chunk) {\n            chunk->next_chunk->prev_chunk = chunk->prev_chunk;\n        }",
+              "suggestionContent": "在 release 函数中，当一个未满的 chunk 被回收并移动到链表头部时，代码中处理了该 chunk 从链表中“解链”的逻辑。然而，当被移动的这个 chunk 正好是链表的尾节点（tail_）时，现有的“解链”逻辑没有更新 tail_ 指针。这会导致 tail_ 指针仍然指向一个已经被移动到链表中间的 chunk，破坏了双向链表的结构完整性，后续操作可能会依赖于这个错误的尾指针，引发不可预知的行为。",
+              "suggestionLine": 128
+            }
+          ],
+          "src/deps/dynamic-types/DynamicData.cpp": [
+            {
+              "resolveCode": "while (elementType != nullptr && elementType->get_kind() == TK_ALIAS) {\n            elementType = elementType->get_base_type();\n        }\n        size_t memberSize = get_member_offset_from_type(elementType);\n\n        size_t bufferOffset = 0;\n        size_t bufferSize = pType->get_members_size();\n        size_t offset = 0;\n        for (uint32_t i = 0; i < pType->get_total_bounds(); ++i) {\n            if (offset != bufferOffset || ((offset + memberSize) > bufferSize)) {\n                throw std::runtime_error(\"out of buffer 7.\");\n            } else {\n                bufferOffset += memberSize;\n            }\n\n            if (elementType->is_complex_kind()) {\n                DynamicData* data = DynamicDataFactory::get_instance()->create_data(elementType);\n                *(DynamicData**)(buffer + offset) = data;\n            } else if (elementType->get_kind() == TK_STRING8 || elementType->get_kind() == TK_STRING16) {\n                add_string_value(buffer + offset, elementType->get_kind());\n            } else {\n                std::string def_value = \"0\";\n                set_default_value(buffer + offset, elementType->get_kind(), def_value);\n            }\n            offset += memberSize;\n        }",
+              "suggestionContent": "在 create_members_array 函数中，新增的逻辑判断存在一个个严重问题：误用位运算符：在条件判断 !(elementType->get_kind() == TK_STRING8) & !(elementType->get_kind() == TK_STRING16) 中，使用了位与运算符 & 而非逻辑与运算符 &&。虽然在此特定布尔上下文中可能不会导致功能异常，但这在语义上是错误的，并且表明了对C++运算符的误解，应立即纠正以保证代码的健壮性和正确性。必须移除此错误的提前返回逻辑，并恢复对基本类型的默认值初始化，以确保数据的完整性和程序的稳定性。",
+              "suggestionLine": 549
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 5,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/os/vcos2/components/rt_framework",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/os/vcos2/components/rt_framework/+/1433257",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "c95b16b005dd8fef3aef0e16de3fb51d599f25c7",
+      "target_commit": "0f608fbe0a9079df369c6997e7403641feff5336",
+      "event_id": "1433257",
+      "change_context": {
+        "expect_suggestions": {
+          "config_plug_in/generator/context/functions.py": [
+            {
+              "resolveCode": "        for core_name, value in core_cfg.items():\n            \"\"\" 找到core ref 的bsw app ,从bsw app 找到对应的 coreid \"\"\"\n            if \"DefinitionRef\" in value:\n                bsw_app_name = utils.get_last_item(value[\"OsCoreBswApplicationRef\"][\"ValueRef\"])\n                core_number = os_app_config[bsw_app_name][\"CoreNumber\"]\n                for subkey, subvalue in value.items():\n                    if \"OsShareStackTaskComb\" in subvalue:\n                        for task_dir in subvalue[\"OsShareStackTaskComb\"][\"ValueRef\"]:\n                            if \"/ActiveEcuC/Os/\" in task_dir:\n                                # ... (rest of the logic)",
+              "suggestionContent": "在当前代码实现中，变量 `core_number` 在 `if \"DefinitionRef\" in value:` 条件块内部进行赋值。然而，使用该变量的后续 `for` 循环却位于该条件块之外。如果 `core_cfg` 中的某个条目不满足 `if` 条件，`core_number` 将不会被赋值，导致后续代码在尝试访问它时立即触发 `UnboundLocalError` 运行时错误。这是一个严重的逻辑缺陷，会使程序崩溃。为了修复此问题，必须将使用 `core_number` 的代码块整体移入到 `if` 条件判断的范围内，确保只有在 `core_number` 被成功赋值后才执行相关操作。",
+              "suggestionLine": 140
+            }
+          ],
+          "inc/rtfw_task_internal.h": [
+            {
+              "resolveCode": "#if defined(CONFIG_RT_FRAMEWORK_SHARE_TASK_STACK) && (CONFIG_RT_FRAMEWORK_SHARE_TASK_STACK == 1)\n#define OS_TASK_GET_EXTTASKSHARESTACKINFO(task_cfg) ((task_cfg)->task_share_stack_info)\n#endif",
+              "suggestionContent": "新增的宏 `OS_TASK_GET_EXTTASKSHARESTACKINFO` 用于获取任务共享栈信息，但其定义缺少必要的条件编译指令。它所访问的结构体成员 `task_share_stack_info` 是通过 `CONFIG_RT_FRAMEWORK_SHARE_TASK_STACK` 宏进行条件编译的。当此配置被禁用时，`task_share_stack_info` 成员不存在，任何对该宏的引用都将导致编译失败。为确保代码的健壮性和可配置性，应将此宏的定义也置于相同的条件编译块中。",
+              "suggestionLine": 57
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 6,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/livisor/hypervisor",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/livisor/hypervisor/+/1440095",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "62e07f654592bb375536f15a3bad5f8a105d4595",
+      "target_commit": "3d6de04b1c978d33ea7d57760a024245b40b7349",
+      "event_id": "1440095",
+      "change_context": {
+        "expect_suggestions": {
+          "drivers/fusa.c": [
+            {
+              "resolveCode": "if (strncmp(cur_name, FDT_FUSA_REMAP_NAME_PREFIX, len_name_prefix) == 0) {\n            uint32_t cur_cpuid = atoi(cur_name + len_name_prefix);\n\n            if (cur_cpuid < CONFIG_HYPER_NR_CPUS) {\n                strcpy(fusa_a78_intr_map[cur_cpuid].name, cur_name);\n                memcpy(&fusa_a78_intr_map[cur_cpuid].intr, value + index * 3, 3 * sizeof(uint32_t));\n            } else {\n                pr_err(\"fusa: invalid cpuid %d from name %s\\n\", cur_cpuid, cur_name);\n            }\n        }",
+              "suggestionContent": "在复制到fusa_a78_intr_map数组之前，未检查cur_cpuid是否在有效范围内（0到CONFIG_HYPER_NR_CPUS-1）。这可能导致数组越界写入，造成内存损坏和安全漏洞。",
+              "suggestionLine": 49
+            },
+            {
+              "resolveCode": "当pcpu_id超出范围时，函数直接返回，但之前分配的内存（new_interrupts和new_interrupt_names）未被释放，导致内存泄漏。",
+              "suggestionContent": "if (pcpu_id >= fusa_a78_intr_map_count) {\n                pr_notice(\"fusa: pcpu %d fusa interrupt mapping is not found\\n\", pcpu_id);\n                ret = -EINVAL;\n                goto __free_and_ret;\n            }",
+              "suggestionLine": 89
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 7,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/ssdk/pytest",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/ssdk/pytest/+/1437175",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "c06ebaaf3e7494cd4c62eb804fe5ca9a15f8a6c0",
+      "target_commit": "0fe15e3fa1db8011515ce272f62b3cb0f6703379",
+      "event_id": "1437175",
+      "change_context": {
+        "expect_suggestions": {
+          "testcase/linux/ai/npuete/test_camera_backbone_sub3.py": [
+            {
+              "resolveCode": "        linux_shell.send_command(\"cd /userdata/package_camera_backbone_sub3 && echo 'CD_SUCCESS'\")\n        console_output = linux_shell.read_result_util()\n        print(console_output)\n        assert \"CD_SUCCESS\" in console_output, \"切换目录 /userdata/package_camera_backbone_sub3 失败\"",
+              "suggestionContent": "当前通过检查错误消息字符串`No such file or directory`来判断`cd`命令是否成功，这种方法不够可靠。`cd`命令可能因其他原因（如权限不足）失败，并返回不同的错误信息，导致断言无法捕捕获到所有失败场景。一个更健壮的方法是检查命令的退出码。建议使用`&&`操作符链接一个成功标记命令（如`echo 'CD_SUCCESS'`），该命令仅在`cd`成功执行（退出码为0）后才会执行。通过检查输出中是否存在这个成功标记，可以更可靠地验证命令是否成功。",
+              "suggestionLine": 28
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 8,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/os/vcos2/components/diagnostics",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/os/vcos2/components/diagnostics/+/1431687",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "c3681235b3327c4e94b13174b79e265d55128655",
+      "target_commit": "95b2af8e5efe5bcecfceb62b33bfb6dda31a737c",
+      "event_id": "1431687",
+      "change_context": {
+        "expect_suggestions": {
+          "service/dem/src/dem_freeze_frame.c": [
+            {
+              "resolveCode": "\tfor (uint16 i = 0; ((i < DEM_MAX_NR_OF_PIDS_IN_FREEZEFRAME_DATA) && (!ff_id_class_ref[i]->dem_eol)); i++) {\n\t\trecord_size = dem_get_did_data_size(ff_id_class_ref[i]);\n\t\tif ((store_index + record_size) > DEM_MAX_SIZE_FF_DATA) {\n\t\t\tDEM_DET_REPORT(DEM_DEM_GET_FREEZEFRAME_ID_DEM_E_FF_TOO_BIG);\n\t\t\tbreak;\n\t\t}\n\n\t\tuint8 data_elem_start = ff_id_class_ref[i]->data_class_ref_start;\n\t\tuint8 data_elem_end = ff_id_class_ref[i]->data_class_ref_start + ff_id_class_ref[i]->data_class_num;\n\n\t\tfor (uint8 data_elem_idx = data_elem_start; data_elem_idx < data_elem_end; data_elem_idx++) {\n\t\t\tuint8 mapped_idx = g_dem_cfg_helper->did_data_elem_map[data_elem_idx];\n\n\t\t\tconst dem_data_elem_class_type *data_elem_ref = &g_dem_config_set->data_elem[mapped_idx];\n\n\t\t\tif (NULL != data_elem_ref->data_elem_read_fnc) {\n\t\t\t\t(void)data_elem_ref->data_elem_read_fnc(&(data_ptr[store_index]));\n\t\t\t} else if (DEM_NO_ELEMENT != data_elem_ref->internal_data_type) {\n\t\t\t\tdem_get_internal_element(event_param, data_elem_ref->internal_data_type,\n\t\t\t\t\t\t\t &(data_ptr[store_index]), data_elem_ref->data_size);\n\t\t\t} else {\n\t\t\t\t(void)memset(&(data_ptr[store_index]), DEM_FREEZEFRAME_DEFAULT_VALUE,\n\t\t\t\t\t\t\t data_elem_ref->data_size);\n\t\t\t}\n\t\t\tstore_index += data_elem_ref->data_size;\n\t\t}\n\t}",
+              "suggestionContent": "在函数 `dem_get_pid_data_for_ff` 中，嵌套的两个 `for` 循环都使用了变量 `i` 作为迭代器。在C语言的作用域规则下，内层循环的 `i` (uint8类型) 会遮蔽（shadow）外层循环的 `i` (uint16类型)。这会导致内层循环的执行意外地修改外层循环的计数器，从而使外层循环跳过对某些PID的处理，引发严重的逻辑错误和数据采集不完整的问题。原始代码中使用了 `data_elem_idx` 作为内层循环变量，有效避免了此问题。",
+              "suggestionLine": 484
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 9,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "srdg/ssdk/unimem",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/srdg/ssdk/unimem/+/1432510",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "7968e7f289ff823980a7c62eb2fd98caed69d7db",
+      "target_commit": "8859cf03e3f3e93aed633a69dd0abde1368510d1",
+      "event_id": "1432510",
+      "change_context": {
+        "expect_suggestions": {
+          "libunimem/src/device_buffer.c": [
+            {
+              "resolveCode": " \tindex = (int32_t)(uuid & __UINT32_MAX__) - heap_list[heap].idr_start;\n+\tif (index < 0) {\n+\t\tUNIMEM_ERROR(\"Invalid index calculated: %d\\n\", index);\n+\t\tret = DrvosError_BadParameter;\n+\t\t(void)pthread_mutex_unlock(&heap_list[heap].lock);\n+\t\tgoto label_exit;\n+\t}\n \t/* 用户自定义__import_partial_impl 暂时无法调到 先注释 */\n \tif ((uint32_t)index*sizeof(handle) < heap_list[heap].buf_list_store_size &&\n \t\tdata == NULL) {",
+              "suggestionContent": "代码在计算数组索引 `index` 后，并未检查其是否为负数。如果 `heap_list[heap].idr_start` 的值大于 `(uuid & __UINT32_MAX__)`，`index` 将是一个负值。后续代码将此负值强制转换为 `uint32_t`，这会产生一个非常大的正整数，可能导致整数溢出，从而绕过边界检查，引发内存越界读取。这是一个严重的安全和稳定性风险。",
+              "suggestionLine": 1183
+            },
+            {
+              "resolveCode": " \tindex = handle->uuid - heap_list[heap].idr_start;\n+\tif (index < 0) {\n+\t\tUNIMEM_ERROR(\"Invalid index from handle->uuid: %d\\n\", index);\n+\t\t/* 此处需要根据上下文添加合适的错误处理逻辑，例如释放资源并跳转 */\n+\t\tret = DrvosError_BadParameter;\n+\t\t(void)pthread_mutex_unlock(&heap_list[heap].lock);\n+\t\tgoto label_exit; /* 假设label_exit是合适的错误出口 */\n+\t}\n \tif (index*sizeof(handle) >= heap_list[heap].buf_list_store_size) {",
+              "suggestionContent": "此处通过 `handle->uuid` 重新计算了索引 `index`，但同样缺少了对 `index` 的负值检查。如果 `index` 为负数，`index*sizeof(handle)` 的结果也将是负数，这会导致 `if` 条件判断失效，无法按预期扩展缓冲区。随后的 `heap_list[heap].buf_list[index] = handle;` 操作将使用负数索引访问数组，这会直接导致内存损坏和程序崩溃，是一个严重的稳定性缺陷。",
+              "suggestionLine": 1254
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 10,
+    "case_type": "agent",
+    "input_context": {
+      "repo_name": "ep/web/ep-services",
+      "web_url": "http://gerrit.it.chehejia.com:8080/c/ep/web/ep-services/+/1433395/1",
+      "parchset": 1,
+      "server": "gerrit",
+      "source_commit": "4371f71c4d8cdcc1dd87dbd71ee3fab7ebcb8e53",
+      "target_commit": "ac36ae2038dd97e128b94dcbd2d549f9af08ecbd",
+      "event_id": "1433395",
+      "change_context": {
+        "expect_suggestions": {
+          "services/copilot/server/routes.go": [
+            {
+              "resolveCode": "user, err := s.GetFullUserInfoByToken(token)\nif err != nil {\n\tlog.Info().Err(err).Send()\n\tc.AbortWithStatus(http.StatusUnauthorized)\n\treturn false\n}\n// 必须增加对user是否为nil的检查，防止空指针引用\nif user == nil {\n    log.Info().Msg(\"user not found for the given token\")\n    c.AbortWithStatus(http.StatusUnauthorized)\n    return false\n}\nc.Set(CONTEXT_USER_ID, user.ID)\nc.Set(CONTEXT_USER_NAME, user.Username)",
+              "suggestionContent": "在Go语言中，返回 `(pointer, error)` 的函数在某些情况下（例如，记录未找到）可能会返回 `(nil, nil)`。当前代码只检查了 `err != nil`，但没有检查 `user` 对象本身是否为 `nil`。如果 `s.GetFullUserInfoByToken` 返回一个空的 `user` 和一个 `nil` 的 `error`，代码将继续执行到 `user.ID`，这会立即引发一个空指针引用（nil pointer dereference）的panic，导致服务崩溃。这是一个高风险的稳定性问题。",
+              "suggestionLine": 56
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 11,
+    "case_type": "user",
+    "input_context": {
+      "repo_name": "ep/web/ep-services",
+      "web_url": "https://gerrit.it.chehejia.com/c/ep/web/ep-services/+/1364710",
+      "parchset": 3,
+      "server": "gerrit",
+      "source_commit": "60844067108f4ad4d7a0bd0f7461ba30c035fe9b",
+      "target_commit": "8f40fa0526ac75a55775fbf3c78c2553f94a355d",
+      "event_id": "1364710",
+      "change_context": {
+        "expect_suggestions": {
+          "services/portalv2/dao/daointerface/xcureleases.go": [
+            {
+              "suggestionContent": "这种定义个结构体归并归并吧，参数太多了。",
+              "suggestionLine": 35
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 12,
+    "case_type": "user",
+    "input_context": {
+      "repo_name": "ep/web/ep-services",
+      "web_url": "https://gerrit.it.chehejia.com/c/ep/web/ep-services/+/1332785",
+      "parchset": 17,
+      "server": "gerrit",
+      "source_commit": "0743c1fd10e75d9b6af12925db07a7bef1f1dd05",
+      "target_commit": "dabfb13724cc39e49b3862f41e6e60149a9e0ca2",
+      "event_id": "1332785",
+      "change_context": {
+        "expect_suggestions": {
+          "services/portalv2/dao/version/version.go": [
+            {
+              "suggestionContent": "为啥不定义成set呢？",
+              "suggestionLine": 15
+            },
+            {
+              "suggestionContent": "like 需要特别处理吧？加 %",
+              "suggestionLine": 70
+            },
+            {
+              "suggestionContent": "现在这种拼sql的方式有注入的风险",
+              "suggestionLine": 79
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 13,
+    "case_type": "user",
+    "input_context": {
+      "repo_name": "ep/web/ep-services",
+      "web_url": "https://gerrit.it.chehejia.com/c/ep/web/ep-services/+/1363425",
+      "parchset": 2,
+      "server": "gerrit",
+      "source_commit": "32ae5300769452f886064fe99293b8f6158e7435",
+      "target_commit": "0f6c9d24a99e7ddb2ab5c74f929d4214551db185",
+      "event_id": "1363425",
+      "change_context": {
+        "expect_suggestions": {
+          "services/portalv2/models/review_task.go": [
+            {
+              "suggestionContent": "IssueList 这个用这个翻译不太好，你这个数据就是一个string",
+              "suggestionLine": 92
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 14,
+    "case_type": "user",
+    "input_context": {
+      "repo_name": "srdg/os/edsf/build",
+      "web_url": "https://gerrit.it.chehejia.com/c/srdg/os/edsf/build/+/1451407",
+      "parchset": 2,
+      "server": "gerrit",
+      "source_commit": "cc0f4068755bb614f6e05f836d62e155f6104d6b",
+      "target_commit": "2e3ef28c52b3b29996fbc572719e104ec0e1a48b",
+      "event_id": "1451407",
+      "change_context": {
+        "expect_suggestions": {
+          "envsetup.sh": [
+            {
+              "suggestionContent": "为啥要分开 copy，不能直接 cp -rf edsd/* 么？我看目录结构都一样",
+              "suggestionLine": 531
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 15,
+    "case_type": "user",
+    "input_context": {
+      "repo_name": "cu/compiler/schumacher_mlir",
+      "web_url": "https://gerrit.it.chehejia.com/c/cu/compiler/schumacher_mlir/+/1275913",
+      "parchset": 3,
+      "server": "gerrit",
+      "source_commit": "122150a34580065a7f32bca405f267cc3d578770",
+      "target_commit": "53a7cea1a07b6bf0285e48818d12686e5fa6c59a",
+      "event_id": "1275913",
+      "change_context": {
+        "expect_suggestions": {
+          "graph_compiler/lib/Utils/NameUtils.cpp": [
+            {
+              "suggestionContent": "name和countStr用StringRef?效率更高\n key还保持用string",
+              "suggestionLine": 34
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 16,
+    "case_type": "user",
+    "input_context": {
+      "repo_name": "srdg/livisor/hypervisor",
+      "web_url": "https://gerrit.it.chehejia.com/c/srdg/livisor/hypervisor/+/1272012",
+      "parchset": 7,
+      "server": "gerrit",
+      "source_commit": "a421825b499f5400fb9d0ffec04166e92eb07c68",
+      "target_commit": "ae35286729be2acc2779b10cef71e04300f6230b",
+      "event_id": "1272012",
+      "change_context": {
+        "expect_suggestions": {
+          "arch/pgtable.c": [
+            {
+              "suggestionContent": "申请函数里面已经memset清零了，外部的清零操作可以删除",
+              "suggestionLine": 290
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "case_id": 17,
+    "case_type": "user",
+    "input_context": {
+      "repo_name": "srdg/ssdk/linux-lts",
+      "web_url": "https://gerrit.it.chehejia.com/c/srdg/ssdk/linux-lts/+/1448667",
+      "parchset": 3,
+      "server": "gerrit",
+      "source_commit": "8aa6e3064079cd7bf305bba1b93955353ccdf036",
+      "target_commit": "4afba3f532d98174ac8e81a55ad6ab566f34506b",
+      "event_id": "1448667",
+      "change_context": {
+        "expect_suggestions": {
+          "drivers/soc/liauto/fccumux/fccumux_debugfs.c": [
+            {
+              "suggestionContent": "替换为fsleep()是不是更合适？ref: https://docs.kernel.org/timers/delay_sleep_functions.html",
+              "suggestionLine": 99
+            }
+          ]
+        }
+      }
+    }
+  }
+]

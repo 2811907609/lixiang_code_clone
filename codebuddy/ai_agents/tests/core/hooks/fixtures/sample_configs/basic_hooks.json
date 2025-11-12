@@ -1,0 +1,42 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "TestTool",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Pre-hook executed'",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "File.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python tests/core/hooks/fixtures/test_scripts/validator.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Post-hook executed for all tools'"
+          }
+        ]
+      }
+    ]
+  },
+  "hook_settings": {
+    "default_timeout": 60,
+    "max_concurrent_hooks": 3,
+    "enable_performance_monitoring": true
+  }
+}

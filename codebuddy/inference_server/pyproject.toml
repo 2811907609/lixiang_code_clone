@@ -1,0 +1,84 @@
+
+[project]
+name = "inference_server"
+version = "0.1.0"
+description = "inference server services"
+readme = "README.md"
+authors = [
+    { name = "Xudong Zhang", email = "zhangxudong@lixiang.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "arrow>=1.3.0",
+    "commonlibs",
+    "datasets>=3.2.0",
+    "datautils",
+    "fastapi>=0.115.6",
+    "fire>=0.7.0",
+    "ipython>=8.31.0",
+    "jedi>=0.18.0,<0.19",
+    "levenshtein>=0.26.1",
+    "maturin>=1.8.7",
+    "mysql-connector-python>=9.2.0",
+    "openai==1.99.1",
+    "pandas>=2.2.3",
+    "pyarrow>=19.0.0",
+    "pydantic>=2.9.1",
+    "regex>=2024.11.6",
+    "repoutils",
+    "sqlalchemy>=2.0.38",
+    # "llminfer-rs",
+    "sysutils",
+    "transformers==4.51.3",
+    "uvicorn>=0.34.0",
+    "uvloop>=0.21.0",
+]
+
+[project.entry-points.'vllm.general_plugins']
+spec_edit_plugin = "inference_server.modules.specedit.lib.patch:patch_spec_edit"
+
+[tool.uv]
+python-install-mirror = "https://artifactory.ep.chehejia.com/artifactory/generic-github-releases-remote/indygreg/python-build-standalone/releases/download"
+link-mode = "copy"
+
+[[tool.uv.index]]
+url = "https://artifactory.ep.chehejia.com/artifactory/api/pypi/pypi-remote/simple"
+default = true
+
+[tool.uv.sources]
+commonlibs = { path = "../../packages/commonlibs", editable = true }
+datautils = { path = "../../packages/datautils", editable = true }
+repoutils = { path = "../../packages/repoutils", editable = true }
+sysutils = { path = "../../packages/sysutils", editable = true }
+
+# use different source for local dev and prod build
+# following do not work, uv will check all dependencies on all platforms when running
+# llminfer-rs = [
+  # { path = "../llminfer_rs", editable=true, marker = "sys_platform == 'darwin'" },
+  # { path = "../llminfer_rs/dist/llminfer_rs-0.1.0-cp310-abi3-linux_x86_64.whl", marker = "sys_platform == 'linux'" },
+# ]
+
+[tool.pytest.ini_options]
+log_cli = "true"
+log_cli_level = "DEBUG"
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
+eval = [
+    "datautils",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ['inference_server']
+
+[tool.ruff.lint.isort]
+known-first-party = ["inference_server"]
+known-third-party = ["commonlibs", "datautils", "repoutils", "sysutils"]

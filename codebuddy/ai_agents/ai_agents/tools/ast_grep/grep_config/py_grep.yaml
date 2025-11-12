@@ -1,0 +1,29 @@
+id: def
+language: py
+rule:
+  kind: function_definition
+  regex: def\s+({WORDS})\s*\(\s*([\s\S]*?)\)\s*
+  not:
+    inside:
+      kind: decorated_definition
+---
+id: class
+language: py
+rule:
+  kind: class_definition
+  regex: {WORDS}
+  not:
+    inside:
+      kind: decorated_definition
+---
+id: decorated class
+language: py
+rule:
+  kind: decorated_definition
+  regex: {WORDS}
+---
+id: decorated def
+language: py
+rule:
+  kind: decorated_definition
+  regex: def\s+({WORDS})\s*\(\s*([\s\S]*?)\)\s*

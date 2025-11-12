@@ -1,0 +1,86 @@
+
+languages:
+  go:
+    file_exts:
+      - go
+      - md
+      - rst
+    ignore_glob_patterns:
+      - "*pb.go"
+      - "*mock*.go"
+      - "*/ent/*.go" # ep-services repo use ent to generate so much code, ignore it
+
+  rust:
+    file_exts:
+      - rs
+      - md
+      - rst
+    ignore_glob_patterns:
+      - "*pb.go"
+
+  python:
+    file_exts:
+      - py
+      - md
+      - rst
+    ignore_glob_patterns: []
+
+  c:
+    file_exts:
+      - c
+      - h
+      - md
+      - rst
+    ignore_glob_patterns: []
+
+  cpp:
+    file_exts:
+      - cpp
+      - hpp
+      - md
+      - rst
+    ignore_glob_patterns: []
+
+  javascript:
+    file_exts:
+      - js
+      - jsx
+      - md
+      - rst
+    ignore_glob_patterns: []
+
+  typescript:
+    file_exts:
+      - ts
+      - tsx
+      - md
+      - rst
+    ignore_glob_patterns: []
+
+  java:
+    file_exts:
+      - java
+      - md
+      - rst
+    ignore_glob_patterns: []
+
+  kotlin:
+    file_exts:
+      - kt
+      - md
+      - rst
+    ignore_glob_patterns: []
+
+  lua:
+    file_exts:
+      - lua
+      - md
+      - rst
+    ignore_glob_patterns: []
+
+  vue:
+    file_exts:
+      - vue
+      - md
+      - rst
+    ignore_glob_patterns: []

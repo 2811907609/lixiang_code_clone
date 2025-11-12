@@ -1,0 +1,37 @@
+[project]
+name = "sysutils"
+version = "0.1.0"
+description = "system utils, no third-party dependency"
+readme = "README.md"
+authors = [
+    { name = "Xudong Zhang", email = "zhangxudong@lixiang.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+]
+
+[[tool.uv.index]]
+# url = "https://mirrors.aliyun.com/pypi/simple"
+url = "https://artifactory.ep.chehejia.com/artifactory/api/pypi/pypi-remote/simple"
+default = true
+
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "DEBUG"
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.8.0",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.hatch.build.targets.wheel]
+packages = ['sysutils']

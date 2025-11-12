@@ -1,0 +1,53 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Create",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python tests/core/hooks/fixtures/test_scripts/decision_hook.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Delete.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python tests/core/hooks/fixtures/test_scripts/blocking_hook.py",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "TestTool",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python tests/core/hooks/fixtures/test_scripts/json_response_hook.py"
+          }
+        ]
+      }
+    ],
+    "PostToolError": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python tests/core/hooks/fixtures/test_scripts/error_logger.py"
+          }
+        ]
+      }
+    ]
+  },
+  "hook_settings": {
+    "default_timeout": 45,
+    "max_concurrent_hooks": 5,
+    "enable_performance_monitoring": false
+  }
+}

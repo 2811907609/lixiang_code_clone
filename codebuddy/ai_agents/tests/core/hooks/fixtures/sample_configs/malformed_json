@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "TestTool",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'test'"
+          }
+        ]
+      }
+    ]
+  // Missing closing brace
+}

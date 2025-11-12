@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+*.jsonl
+*.parquet
+.venv
+
+.env

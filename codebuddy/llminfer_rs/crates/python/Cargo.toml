@@ -1,0 +1,22 @@
+[package]
+name = "llminfer_rs"
+authors.workspace = true
+description.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[lib]
+name = "llminfer_rs"
+
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+diff = { path = "../diff" }
+
+pyo3 = { workspace = true, features = ["extension-module", "abi3-py310"] }
+
+
+[dev-dependencies]
